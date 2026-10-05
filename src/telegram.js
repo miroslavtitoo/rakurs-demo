@@ -4,10 +4,10 @@ export function initTelegram() {
   tg.ready();
   tg.expand();
   if (tg.isVersionAtLeast?.("6.1")) {
-    tg.setHeaderColor("#0c0d0f");
-    tg.setBackgroundColor("#0c0d0f");
+    tg.setHeaderColor("#ffffff");
+    tg.setBackgroundColor("#f7f8fa");
   }
-  if (tg.isVersionAtLeast?.("7.10")) tg.setBottomBarColor("#0c0d0f");
+  if (tg.isVersionAtLeast?.("7.10")) tg.setBottomBarColor("#ffffff");
   function update() {
     const safe = tg.safeAreaInset || {},
       content = tg.contentSafeAreaInset || {};
