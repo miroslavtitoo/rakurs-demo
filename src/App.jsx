@@ -56,6 +56,7 @@ import OverviewDesign from "./Overview.jsx";
 import TeamMark from "./TeamMark.jsx";
 import Atmosphere from "./Atmosphere.jsx";
 import { initTelegram, haptic } from "./telegram.js";
+import { routeFromHash } from "./routing.js";
 
 const Ctx = createContext(null);
 const useApp = () => useContext(Ctx);
@@ -272,7 +273,7 @@ function Modal({ title, children, onClose, wide = false }) {
   );
 }
 export default function App() {
-  const [route, setRoute] = useState(location.hash.slice(1) || "/");
+  const [route, setRoute] = useState(() => routeFromHash(location.hash));
   const [favorites, setFavorites] = useStored("favorites", []);
   const [purchases, setPurchases] = useStored("purchases", []);
   const [subscriptions, setSubscriptions] = useStored("subscriptions", []);
@@ -285,7 +286,7 @@ export default function App() {
   );
   useEffect(() => {
     const handler = () => {
-      setRoute(location.hash.slice(1) || "/");
+      setRoute(routeFromHash(location.hash));
       window.scrollTo({ top: 0, behavior: "instant" });
     };
     window.addEventListener("hashchange", handler);
@@ -320,7 +321,7 @@ export default function App() {
   }, [route, modal]);
   function navigate(path) {
     haptic();
-    if (location.hash.slice(1) === path) {
+    if (routeFromHash(location.hash) === path) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
