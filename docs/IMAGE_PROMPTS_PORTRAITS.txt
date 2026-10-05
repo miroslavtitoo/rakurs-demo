@@ -1,0 +1,15 @@
+Generated with the built-in image_gen tool. All four people are fictional.
+Final assets: public/images/analysts/{mark,anna,lev,nika}.webp
+
+[mark]
+Use case: photorealistic-natural. Asset: square profile avatar photograph for a premium sports intelligence app. A fictional 32-year-old male esports analyst, short dark brown textured hair, subtle stubble, charcoal crewneck shirt, thoughtful confident expression. Single person, centered head and shoulders, complete head with generous margin around hair, face fills middle 55 percent of square. Neutral dark graphite seamless studio backdrop. Natural muted colors, soft silver key light, restrained warm skin tones, subtle rim light. Refined editorial photography, realistic skin texture, quiet premium mood. No text, logos, watermark, props, sports uniforms or collage. This person is entirely invented, not a real person.
+
+[anna]
+Use case: photorealistic-natural. Asset: square profile avatar photograph for a premium sports intelligence app. A fictional 30-year-old female football analyst, straight shoulder-length dark brown bob tucked behind one ear, ivory crewneck under dark tailored jacket, calm confident expression. Single person, centered head and shoulders, complete head with generous margin around hair, face fills middle 55 percent of square. Neutral dark graphite seamless studio backdrop. Natural muted colors, soft silver key light, restrained warm skin tones, subtle rim light. Refined editorial photography, realistic skin texture, quiet premium mood. No text, logos, watermark, props, sports uniforms or collage. This person is entirely invented, not a real person.
+
+[lev]
+Use case: photorealistic-natural. Asset: square profile avatar photograph for a premium sports intelligence app. A fictional 36-year-old male esports analyst, wavy medium brown hair, clean-shaven, thin round dark eyeglasses, dark slate knit shirt, approachable focused expression. Single person, centered head and shoulders, complete head with generous margin around hair, face fills middle 55 percent of square. Neutral dark graphite seamless studio backdrop. Natural muted colors, soft silver key light, restrained warm skin tones, subtle rim light. Refined editorial photography, realistic skin texture, quiet premium mood. No text, logos, watermark, props, sports uniforms or collage. This person is entirely invented, not a real person.
+
+[nika]
+Use case: photorealistic-natural. Asset: square profile avatar photograph for a premium sports intelligence app. A fictional 29-year-old female football analyst, dark blonde hair pulled loosely back, black turtleneck, calm slight smile, confident expression. Single person, centered head and shoulders, complete head with generous margin around hair, face fills middle 55 percent of square. Neutral dark graphite seamless studio backdrop. Natural muted colors, soft silver key light, restrained warm skin tones, subtle rim light. Refined editorial photography, realistic skin texture, quiet premium mood. No text, logos, watermark, props, sports uniforms or collage. This person is entirely invented, not a real person.
+

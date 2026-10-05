@@ -1,0 +1,10 @@
+node_modules/
+dist/
+tmp/
+.env*
+!.env.example
+Refs/
+*.pdf
+playwright-report/
+test-results/
+output/

@@ -1,0 +1,168 @@
+/* v3: quieter surfaces, a readable type scale, consistent team identities. */
+:root {
+  --muted: #a0a6af;
+  --surface-shadow: 0 16px 40px -22px #000b, inset 0 1px 0 #ffffff09;
+}
+.app-shell { isolation: isolate; }
+.ambient-light { position: fixed; inset: 0; overflow: hidden; z-index: -1; pointer-events: none; }
+.ambient-light i { position: absolute; width: 70vw; height: 80vh; right: -20vw; top: -25vh; background: radial-gradient(ellipse, #b5d89008, transparent 68%); animation: ambient-drift 28s ease-in-out infinite alternate; }
+.ambient-light i + i { width: 60vw; top: 40vh; left: 10vw; background: radial-gradient(ellipse, #9cafe609, transparent 68%); animation-delay: -14s; }
+.reading-progress { position: fixed; z-index: 60; height: 2px; top: 0; inset-inline: 0; transform-origin: left; background: linear-gradient(90deg, #d7fa7740, #d7fa77); pointer-events: none; }
+@keyframes ambient-drift { to { transform: translate3d(-9vw, 12vh, 0) scale(1.15); } }
+h1 { letter-spacing: -.045em; line-height: 1.17; }
+h2, h3 { text-wrap: balance; }
+.page-intro { margin-bottom: 32px; }
+.page-intro h1 { margin-top: 12px; letter-spacing: -.045em; }
+.eyebrow, .section-head .eyebrow { font-size: 10px; letter-spacing: .13em; line-height: 1.6; }
+.sidebar-caption { font-size: 9px; letter-spacing: .17em; }
+.workspace-label { letter-spacing: .12em; }
+.sidebar nav button { font-size: 13px; }
+.sidebar-note button, .user-card small { font-size: 10px; line-height: 1.55; }
+.intro-note { font-size: 12px; color: #919aa5; line-height: 1.65; }
+.hero-content { padding-top: 32px; }
+.hero-artwork { position: absolute; inset: -4%; z-index: -3; }
+.hero-artwork img { width: 100%; height: 100%; object-fit: cover; display: block; animation: hero-breathe 18s ease-in-out infinite alternate; transform-origin: 75% 50%; }
+.hero-label { font-size: 10px; letter-spacing: .13em; }
+.hero-content h2 { letter-spacing: -.045em; line-height: 1.13; margin-top: 32px; }
+.hero-content p { font-size: 13px; line-height: 1.75; }
+.hero-bottom { font-size: 9px; letter-spacing: .07em; }
+.hero-orbit-label { display: none; }
+.cream-button { font-size: 12px; min-height: 48px; }
+.spotlight, .hero-art, .panel, .material-card, .analyst-card, .author-preview { box-shadow: var(--surface-shadow); }
+.spotlight .muted { font-size: 11px; line-height: 1.55; }
+.spotlight-match h3 { letter-spacing: -.025em; font-weight: 600; }
+.spotlight-time, .spotlight-insight p { font-size: 11px; line-height: 1.65; }
+.spotlight .text-arrow { font-size: 12px; }
+.team-mark, .team-mark.away {
+  color: var(--team-color);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--team-color) 16%, #1b1d21), color-mix(in srgb, var(--team-color) 5%, #101215));
+  border-color: color-mix(in srgb, var(--team-color) 23%, transparent);
+  box-shadow: inset 0 1px #ffffff0c, 0 4px 10px #0003;
+}
+.team-mark:after { display: none; }
+.team-mark > svg { width: 77%; height: 77%; filter: drop-shadow(0 2px 2px #0003); }
+.team-stack { gap: 5px; padding-right: 0; }
+.team-stack .team-mark { width: 34px; height: 38px; border-radius: 10px; }
+.team-stack .team-mark + .team-mark { margin-left: 0; transform: none; box-shadow: inset 0 1px #ffffff0c; }
+.avatar { background: #25272b; border: 1px solid #ffffff18; box-shadow: 0 4px 14px #0003; }
+.avatar:before { display: none; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
+.section-head h2, .editorial-bottom .section-head h2 { font-size: 26px; line-height: 1.25; letter-spacing: -.035em; }
+.section-head .eyebrow { margin-bottom: 8px; }
+.metric-copy small { font-size: 11px; line-height: 1.55; margin-top: 6px; }
+.metric-copy strong > span { font-size: 12px; letter-spacing: 0; }
+.trust-strip { margin-block: 24px 40px; }
+.event-table { background: #131619; box-shadow: var(--surface-shadow); }
+.event-row { min-height: 96px; }
+.event-primary { gap: 16px; }
+.event-names > strong { font-size: 14px; letter-spacing: -.015em; line-height: 1.5; font-weight: 600; }
+.event-names small { font-size: 11px; line-height: 1.55; margin-top: 6px; }
+.event-team-line { display: flex; align-items: center; gap: 10px; }
+.event-team-line + .event-team-line { margin-top: 5px; }
+.event-team-line strong { font-size: 13px; font-weight: 600; letter-spacing: -.01em; line-height: 1.45; }
+.event-team-line .team-mark { width: 25px; height: 26px; border-radius: 7px; }
+.event-names small { padding-left: 35px; margin-top: 8px; }
+.event-time { font-size: 14px; font-weight: 600; letter-spacing: -.015em; }
+.event-time small { font-size: 10px; font-weight: 400; }
+.table-header { font-size: 10px; letter-spacing: .08em; min-height: 44px; }
+.analysis-count { font-size: 11px; color: #bccdac; }
+.form-pills i { width: 19px; height: 23px; font-size: 10px; }
+.table-foot, .table-foot button { font-size: 10px; line-height: 1.6; }
+.date-switch button, .segmented button, .search-box input { font-size: 12px; }
+.author-preview strong, .byline strong { font-size: 13px; line-height: 1.5; }
+.author-preview small, .byline small { font-size: 11px; line-height: 1.6; }
+.author-preview .avatar { width: 52px; height: 58px; }
+.editorial-bottom { margin-top: 40px; }
+.panel .section-head h2 { font-size: 20px; letter-spacing: -.025em; }
+.material-title h3 { font-size: 22px; line-height: 1.4; letter-spacing: -.025em; }
+.material-card > p { font-size: 13px; line-height: 1.8; color: #a1b2bf; }
+.analyst-metrics { grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(0, 1fr)); gap: 16px; }
+.analyst-metrics strong { font-size: 26px; letter-spacing: -.04em; white-space: nowrap; }
+.analyst-metrics > div + div { border-left: 1px solid #ffffff0b; padding-left: 14px; }
+.analyst-metrics small { font-size: 10px; white-space: nowrap; }
+.tag { font-size: 10px; letter-spacing: .025em; }
+.chart-labels, .line-value small, .analyst-metrics small, .source-chip, .fine-print { font-size: 11px; line-height: 1.6; }
+.primary, .secondary { font-size: 12px; }
+.page-footer { font-size: 10px; line-height: 1.6; }
+.event-row:focus-within { background: #1a201b; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .team-mark { transition: transform .4s var(--ease), box-shadow .4s; }
+  .event-primary:hover .team-mark:first-child { transform: translateY(-3px) rotate(-4deg); }
+  .event-primary:hover .team-mark:last-child { transform: translateY(-3px) rotate(4deg); }
+}
+@media (min-width: 761px) and (max-width: 1200px) {
+  .team-stack { flex-direction: column; gap: 4px; }
+  .team-stack .team-mark { width: 28px; height: 29px; }
+  .event-primary { gap: 12px; }
+  .event-names > strong { font-size: 13px; }
+}
+@media (max-width: 760px) {
+  .page-intro h1 { font-size: clamp(34px, 9.6vw, 44px); line-height: 1.16; letter-spacing: -.045em; }
+  .page-intro .eyebrow { font-size: 9px; letter-spacing: .09em; }
+  .hero-content h2 { font-size: clamp(35px, 10vw, 44px); letter-spacing: -.045em; }
+  .hero-label { font-size: 9px; }
+  .hero-content p { font-size: 12px; max-width: 240px; }
+  .hero-bottom { font-size: 8px; gap: 12px; }
+  .hero-bottom > span:last-child { display: none; }
+  .spotlight { padding: 24px; }
+  .spotlight-match h3 { font-size: 16px; }
+  .spotlight .team-mark { width: 43px; height: 46px; }
+  .spotlight-time { font-size: 11px; }
+  .trust-strip { margin-block: 20px 36px; gap: 16px; }
+  .metric-copy small { font-size: 10px; line-height: 1.6; }
+  .metric-copy strong > span { font-size: 11px; }
+  .section-head h2, .editorial-bottom .section-head h2 { font-size: 26px; }
+  .section-head .eyebrow { font-size: 9px; letter-spacing: .1em; }
+  .date-switch { width: 100%; justify-content: space-between; align-self: auto; margin: 0; }
+  .date-switch button { flex: 1; font-size: 11px; min-height: 38px; padding: 8px; }
+  .segmented button { font-size: 11px; }
+  .search-box input { font-size: 12px; }
+  .event-table { background: none; box-shadow: none; gap: 12px; }
+  .event-row { grid-template-columns: minmax(0, 1fr) 60px 30px; min-height: 152px; padding: 18px 16px; gap: 0 8px; background: linear-gradient(135deg, #1b2025, #13171b); box-shadow: var(--surface-shadow); border-radius: 14px; }
+  .event-primary { grid-column: 1/3; gap: 12px; }
+  .event-team-line strong { font-size: 14px; }
+  .event-team-line .team-mark { width: 27px; height: 28px; }
+  .event-names small { padding-left: 37px; }
+  .team-stack { flex-direction: column; gap: 4px; }
+  .team-stack .team-mark { width: 30px; height: 31px; border-radius: 8px; }
+  .team-stack .team-mark + .team-mark { margin: 0; box-shadow: inset 0 1px #ffffff0c; }
+  .event-names > strong { font-size: 14px; line-height: 1.5; letter-spacing: -.02em; }
+  .event-names small { font-size: 10px; line-height: 1.6; gap: 4px; }
+  .event-time { grid-column: 1; grid-row: 2; text-align: left; font-size: 12px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; padding: 0; margin-top: 16px; }
+  .event-time small { margin: 0; font-size: 10px; }
+  .form-pills { grid-column: 1; grid-row: 3; margin: 12px 0 0; }
+  .form-pills i { width: 20px; height: 23px; font-size: 10px; }
+  .analysis-count { grid-row: 3; grid-column: 2/4; font-size: 11px; min-height: 32px; padding: 0; }
+  .event-row .save { width: 34px; height: 38px; margin-top: -5px; }
+  .event-row .save > svg { width: 18px; }
+  .table-foot { flex-wrap: wrap; gap: 8px; }
+  .table-foot > span { flex-wrap: wrap; }
+  .author-preview .avatar { width: 54px; height: 60px; }
+  .author-preview strong { font-size: 14px; }
+  .author-preview small { font-size: 11px; }
+  .editorial-bottom .section-head .text-arrow { font-size: 11px; }
+  .score-team h2 { font-size: 14px; line-height: 1.4; letter-spacing: -.015em; }
+  .material-title h3 { font-size: 21px; }
+  .material-card > p { font-size: 13px; }
+  .byline strong { font-size: 13px; }
+  .byline small { font-size: 11px; }
+  .bottom-nav > button { font-size: 10px; }
+  .ambient-light i { width: 130vw; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ambient-light i { animation: none; }
+  .reading-progress { display: none; }
+  .hero-artwork { transform: none !important; }
+  .hero-artwork img { animation: none; }
+}
+@media (max-width: 374px) {
+  .analyst-metrics { gap: 10px; }
+  .analyst-metrics strong { font-size: 22px; }
+  .analyst-metrics > div + div { padding-left: 8px; }
+  .analyst-metrics small { font-size: 9px; }
+  .spotlight { padding: 20px; }
+  .spotlight-match { gap: 8px; }
+  .spotlight-match > div { gap: 7px; }
+  .spotlight-match h3 { font-size: 13px; }
+  .spotlight .team-mark { width: 34px; height: 38px; }
+}
