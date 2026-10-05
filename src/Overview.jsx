@@ -1,3 +1,4 @@
+import HotEvents from "./HotEvents.jsx";
 import React, { useRef } from "react";
 import { motion, useScroll, useTransform, useReducedMotion } from "motion/react";
 import {
@@ -29,7 +30,7 @@ export default function Overview({
   SectionHead,
   authors,
 }) {
-  const { navigate, setModal } = useApp();
+  const { navigate, setModal, favorites, favorite } = useApp();
   const hero = useRef(null);
   const reduced = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: hero, offset: ["start start", "end start"] });
@@ -167,44 +168,19 @@ export default function Overview({
           </button>
         </section>
       </motion.div>
-      <motion.div className="trust-strip" {...reveal}>
-        <span>
-          <span className="metric-icon">
-            <Activity size={19} />
-          </span>
-          <span className="metric-copy">
-            <strong>
-              12<span> / событий</span>
-            </strong>
-            <small>Футбол и CS2</small>
-          </span>
-          <i className="metric-spark" aria-hidden="true">
-            ▂▃▂▅▄▆▅▇
-          </i>
-        </span>
-        <span>
-          <span className="metric-icon">
-            <Users size={19} />
-          </span>
-          <span className="metric-copy">
-            <strong>
-              04<span> / аналитика</span>
-            </strong>
-            <small>Разные мнения. Общая картина.</small>
-          </span>
-        </span>
-        <button onClick={() => setModal({ type: "method" })}>
-          <span className="metric-icon">
-            <ShieldCheck size={19} />
-          </span>
-          <span className="metric-copy">
-            <strong>Всё прозрачно</strong>
-            <small>Открытая история результатов</small>
-          </span>
-          <ArrowUpRight size={17} />
+      <motion.div className="overview-shortcuts" {...reveal}>
+        <button onClick={() => document.getElementById("radar").scrollIntoView({ behavior: reduced ? "instant" : "smooth", block: "start" })}>
+          <Activity size={19} /><span><strong>Все события</strong><small>Расписание и фильтры</small></span><ArrowUpRight size={16} />
+        </button>
+        <button onClick={() => navigate("/analysts")}>
+          <Users size={19} /><span><strong>Найти аналитика</strong><small>Подходы и история результатов</small></span><ArrowUpRight size={16} />
+        </button>
+        <button onClick={() => setModal({ type: "stories" })}>
+          <Sparkles size={19} /><span><strong>Как это работает</strong><small>Ракурс в пяти сторис</small></span><ArrowUpRight size={16} />
         </button>
       </motion.div>
-      <motion.div {...reveal}>
+      <motion.div {...reveal}><HotEvents navigate={navigate} favorites={favorites} favorite={favorite} /></motion.div>
+      <motion.div id="radar" {...reveal}>
         <EventList />
       </motion.div>
       <motion.div className="editorial-bottom" {...reveal}>

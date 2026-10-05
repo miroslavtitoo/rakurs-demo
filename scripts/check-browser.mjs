@@ -10,6 +10,7 @@ const page = await browser.newPage({
   viewport: { width: 1440, height: 1000 },
   reducedMotion: "reduce",
 });
+await page.addInitScript(() => localStorage.setItem("rakurs:onboardingSeen", "true"));
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 const goto = async (path) => {
@@ -49,14 +50,14 @@ try {
   await page
     .getByRole("button", { name: "Что может изменить оценку?", exact: true })
     .click();
-  await expect(page.locator(".ai-answer")).toContainText("Veto");
+  await expect(page.locator(".ai-answer").last()).toContainText("Veto");
   await page
     .getByRole("textbox", { name: "Ваш вопрос о матче" })
     .fill("Каков состав?");
   await page
     .getByRole("button", { name: "Задать вопрос", exact: true })
     .click();
-  await expect(page.locator(".ai-answer")).toContainText("Свободный диалог");
+  await expect(page.locator(".ai-answer").last()).toContainText("Свободный диалог");
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Статистика", exact: true }).click();
   await expect(page.getByText("Победы на Mirage")).toBeVisible();
@@ -184,6 +185,7 @@ try {
     r.fulfill({ body: "", contentType: "application/javascript" }),
   );
   await tgPage.addInitScript(() => {
+    localStorage.setItem("rakurs:onboardingSeen", "true");
     window.tgCalls = [];
     window.Telegram = {
       WebApp: {

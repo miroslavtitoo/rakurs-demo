@@ -52,7 +52,8 @@ try {
     viewport: { width: 1440, height: 1000 },
     reducedMotion: "reduce",
   });
-  const errors = [];
+  await page.addInitScript(() => localStorage.setItem("rakurs:onboardingSeen", "true"));
+const errors = [];
   const bad = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("response", (r) => {

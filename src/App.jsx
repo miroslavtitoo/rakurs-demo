@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import {
   ArrowUpRight,
@@ -57,6 +58,9 @@ import TeamMark from "./TeamMark.jsx";
 import Atmosphere from "./Atmosphere.jsx";
 import { initTelegram, haptic } from "./telegram.js";
 import { routeFromHash } from "./routing.js";
+import Onboarding from "./Onboarding.jsx";
+import AIChat from "./AIChat.jsx";
+import MatchDashboard, { ContextCards } from "./MatchDashboard.jsx";
 
 const Ctx = createContext(null);
 const useApp = () => useContext(Ctx);
@@ -200,10 +204,13 @@ function Chart({ values, labels = ["", ""], large = false }) {
     </div>
   );
 }
-function Modal({ title, children, onClose, wide = false }) {
+function Modal({ title, children, onClose, wide = false, className = "", hideHeading = false }) {
   const box = useRef(null);
   useEffect(() => {
     const before = document.activeElement;
+    const shell = document.querySelector(".app-shell");
+    const wasInert = shell?.inert;
+    if (shell) shell.inert = true;
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     box.current?.focus();
@@ -233,10 +240,11 @@ function Modal({ title, children, onClose, wide = false }) {
     return () => {
       document.body.style.overflow = overflow;
       document.removeEventListener("keydown", key);
+      if (shell) shell.inert = wasInert;
       before?.focus?.();
     };
   }, [onClose]);
-  return (
+  return createPortal(
     <motion.div
       className="modal-backdrop"
       initial={{ opacity: 0 }}
@@ -250,14 +258,14 @@ function Modal({ title, children, onClose, wide = false }) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={"modal " + (wide ? "wide" : "")}
+        className={"modal " + (wide ? "wide " : "") + className}
         initial={{ y: 32, opacity: 0, scale: 0.98 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: 30, opacity: 0 }}
         transition={{ type: "spring", damping: 30, stiffness: 330 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-heading">
+        {!hideHeading && <div className="modal-heading">
           <h2>{title}</h2>
           <button
             className="icon-button"
@@ -266,10 +274,11 @@ function Modal({ title, children, onClose, wide = false }) {
           >
             <X {...iconProps} />
           </button>
-        </div>
+        </div>}
         {children}
       </motion.section>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }
 export default function App() {
@@ -278,7 +287,8 @@ export default function App() {
   const [purchases, setPurchases] = useStored("purchases", []);
   const [subscriptions, setSubscriptions] = useStored("subscriptions", []);
   const [publications, setPublications] = useStored("publications", []);
-  const [modal, setModal] = useState(null);
+  const [onboardingSeen, setOnboardingSeen] = useStored("onboardingSeen", false);
+  const [modal, setModal] = useState(() => onboardingSeen ? null : { type: "stories", firstVisit: true });
   const [toast, setToast] = useState("");
   const [notificationRead, setNotificationRead] = useStored(
     "notificationRead",
@@ -305,7 +315,7 @@ export default function App() {
     const tg = window.Telegram?.WebApp;
     if (!tg?.initData || !tg.isVersionAtLeast?.("6.1")) return;
     const cb = () => {
-      if (modal) setModal(null);
+      if (modal) closeModal();
       else if (route.startsWith("/author/")) navigate("/analysts");
       else if (route.startsWith("/read/")) {
         const m = [...publications, ...materials].find(
@@ -326,6 +336,13 @@ export default function App() {
       return;
     }
     location.hash = path;
+  }
+  function closeModal() {
+    if (modal?.type === "stories") {
+      setOnboardingSeen(true);
+      if (modal.firstVisit) navigate("/");
+    }
+    setModal(null);
   }
   function favorite(id) {
     setFavorites((prev) =>
@@ -448,7 +465,7 @@ export default function App() {
               <div className="topbar-actions">
                 <button
                   className="demo-badge"
-                  onClick={() => setModal({ type: "about" })}
+                  onClick={() => setModal({ type: "stories" })}
                 >
                   <span /> ДЕМО-ВЕРСИЯ <Info size={12} />
                 </button>
@@ -508,7 +525,7 @@ export default function App() {
           )}
         </AnimatePresence>
         <AnimatePresence>
-          {modal && <GlobalModal modal={modal} close={() => setModal(null)} />}
+          {modal && <GlobalModal modal={modal} close={closeModal} />}
         </AnimatePresence>
       </Ctx.Provider>
     </MotionConfig>
@@ -765,7 +782,6 @@ function MatchPage({ id }) {
   const { navigate, favorites, favorite, setModal, allMaterials } = useApp();
   const e = events.find((x) => x.id === id);
   const [tab, setTab] = useState("Обзор");
-  const [period, setPeriod] = useState("24 ч");
   if (!e) return <NotFound />;
   const cs = e.sport === "CS2";
   const context = getMatchContext(e);
@@ -825,73 +841,8 @@ function MatchPage({ id }) {
           {tab === "Обзор" ? (
             <div className="detail-grid">
               <div>
-                <section className="panel">
-                  <SectionHead
-                    eyebrow="ЧТО ВАЖНО ПЕРЕД МАТЧЕМ"
-                    title="Контекст решает"
-                  />
-                  <div className="factor-list">
-                    {context.factors.map((f, i) => (
-                      <div key={f}>
-                        <span>0{i + 1}</span>
-                        <p>{f}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="risk-note">
-                    <Info size={18} />
-                    <span>
-                      <strong>
-                        {cs
-                          ? "Карты ещё не определены"
-                          : "Ожидаем стартовые составы"}
-                      </strong>
-                      {context.risk}
-                    </span>
-                  </div>
-                </section>
-                <section className="panel line-panel">
-                  <SectionHead
-                    title="Движение коэффициента"
-                    action={
-                      <div className="mini-segment">
-                        {["24 ч", "6 ч"].map((p) => (
-                          <button
-                            key={p}
-                            className={p === period ? "active" : ""}
-                            onClick={() => setPeriod(p)}
-                          >
-                            {p}
-                          </button>
-                        ))}
-                      </div>
-                    }
-                  />
-                  <div className="line-value">
-                    <strong>{e.odds.toFixed(2)}</strong>
-                    <span>
-                      Победа {e.home}
-                      <small>Демонстрационная линия · {period}</small>
-                    </span>
-                    <span className="line-change">
-                      −{(e.line[0] - e.odds).toFixed(2)}
-                    </span>
-                  </div>
-                  <Chart
-                    values={period === "24 ч" ? e.line : e.line.slice(3)}
-                    labels={
-                      period === "24 ч"
-                        ? ["Вчера, 14:30", "Сегодня, 14:30"]
-                        : ["Сегодня, 08:30", "Сегодня, 14:30"]
-                    }
-                  />
-                  <button
-                    className="subtle"
-                    onClick={() => setModal({ type: "sources", event: e })}
-                  >
-                    Как читать этот график <Info size={13} />
-                  </button>
-                </section>
+                <ContextCards event={e} context={context} />
+                <MatchDashboard event={e} Chart={Chart} onSources={() => setModal({ type: "sources", event: e })} />
               </div>
               <aside>
                 <section className="ai-card">
@@ -1990,7 +1941,8 @@ function GlobalModal({ modal, close }) {
     setSubscriptions,
     notify,
   } = useApp();
-  if (modal.type === "ai") return <AIModal event={modal.event} close={close} />;
+  if (modal.type === "stories") return <Onboarding Modal={Modal} close={close} />;
+  if (modal.type === "ai") return <AIChat Modal={Modal} event={modal.event} close={close} onSources={() => setModal({ type: "sources", event: modal.event })} />;
   if (modal.type === "checkout")
     return <Checkout modal={modal} close={close} />;
   if (modal.type === "compare")
@@ -2094,14 +2046,15 @@ function GlobalModal({ modal, close }) {
         </div>
         <div className="simple-row">
           <span>Источник</span>
-          <strong>Сценарий Ракурса v1</strong>
+          <strong>Демосценарий Ракурса</strong>
         </div>
         <div className="simple-row">
           <span>Линия</span>
           <strong>Условные коэффициенты</strong>
         </div>
         <p className="modal-copy">
-          График показывает пример изменения коэффициента выбранной команды.
+          График показывает пример изменения коэффициента выбранного сценария.
+          Вероятности и статистика иллюстративные, без работающей модели.
           Числа не описывают реальный рынок. ИИ объясняет этот же набор готовыми
           текстами.
         </p>
@@ -2331,98 +2284,6 @@ function Checkout({ modal, close }) {
           </p>
         </>
       )}
-    </Modal>
-  );
-}
-function AIModal({ event: e, close }) {
-  const { setModal } = useApp();
-  const [question, setQuestion] = useState("Что важно знать перед матчем?");
-  const [custom, setCustom] = useState("");
-  const ctx = getMatchContext(e);
-  const questions = [
-    "Что важно знать перед матчем?",
-    "Что может изменить оценку?",
-    "В чём расходятся аналитики?",
-  ];
-  return (
-    <Modal title="Ракурс AI" onClose={close}>
-      <div className="ai-context">
-        <SportIcon sport={e.sport} />
-        {e.home} — {e.away}
-      </div>
-      <Tag>ПОДГОТОВЛЕННЫЙ ПРИМЕР · НЕ LIVE-МОДЕЛЬ</Tag>
-      <div className="ai-questions">
-        {questions.map((q) => (
-          <button
-            className={question === q ? "active" : ""}
-            key={q}
-            onClick={() => setQuestion(q)}
-          >
-            {q}
-            <ArrowUpRight size={13} />
-          </button>
-        ))}
-      </div>
-      <AnimatePresence mode="wait">
-        <motion.div className="ai-answer" key={question} {...anim}>
-          <div className="ai-answer-icon">✳</div>
-          <h3>{question}</h3>
-          {question === questions[0] ? (
-            <>
-              {ctx.factors.map((f, i) => (
-                <p key={f}>
-                  <strong>0{i + 1}.</strong> {f}
-                </p>
-              ))}
-              <div className="risk-note">
-                <Info size={16} />
-                <span>{ctx.risk}</span>
-              </div>
-            </>
-          ) : question === questions[1] ? (
-            <p>
-              {ctx.risk} Демо не получает обновления в реальном времени. Оценку
-              нужно пересмотреть после появления новых данных.
-            </p>
-          ) : question === questions[2] ? (
-            <p>{ctx.disagreement}</p>
-          ) : (
-            <p>
-              Свободный диалог в этой версии не подключён. Для «{question}» нет
-              отдельного подготовленного ответа. Используйте вопросы выше: они
-              опираются на демонстрационные данные этого матча.
-            </p>
-          )}
-          <button
-            className="source-chip"
-            onClick={() => setModal({ type: "sources", event: e })}
-          >
-            <BookOpen size={13} /> Демонабор · 05.10, 14:30{" "}
-            <ArrowUpRight size={12} />
-          </button>
-        </motion.div>
-      </AnimatePresence>
-      <form
-        className="ai-input"
-        onSubmit={(ev) => {
-          ev.preventDefault();
-          if (custom.trim()) {
-            setQuestion(custom.trim());
-            setCustom("");
-          }
-        }}
-      >
-        <input
-          aria-label="Ваш вопрос о матче"
-          value={custom}
-          onChange={(ev) => setCustom(ev.target.value)}
-          placeholder="Задать свой вопрос"
-          maxLength={200}
-        />
-        <button aria-label="Задать вопрос" disabled={!custom.trim()}>
-          <ArrowUpRight size={18} />
-        </button>
-      </form>
     </Modal>
   );
 }

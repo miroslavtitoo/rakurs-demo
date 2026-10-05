@@ -21,6 +21,7 @@ const errors = [];
 try {
   for (const [hash, route] of cases) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+    await context.addInitScript(() => localStorage.setItem("rakurs:onboardingSeen", "true"));
     const page = await context.newPage();
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(base + hash);

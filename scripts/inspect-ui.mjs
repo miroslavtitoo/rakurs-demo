@@ -6,6 +6,7 @@ const page = await browser.newPage({
   viewport: { width: 1440, height: 1100 },
   deviceScaleFactor: 1,
 });
+await page.addInitScript(() => localStorage.setItem("rakurs:onboardingSeen", "true"));
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 await page.goto("http://localhost:5173/");

@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 await fs.mkdir('tmp/design-v3', { recursive: true });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+await page.addInitScript(() => localStorage.setItem("rakurs:onboardingSeen", "true"));
 const errors = [];
 page.on('pageerror', e => errors.push(e.message));
 try {
