@@ -82,3 +82,5 @@
 - Production build и `node scripts/check-build.mjs`: подпапка, локальные ресурсы, матч → AI → покупка → чтение — успешно.
 - Визуально просмотрены сторис, чат, обзор, матч и кабинет на desktop/mobile. Снимки `tmp/design-v4/`.
 - Физический Telegram на iOS/Android агентом не проверялся.
+
+Публикация v4: commit `d39dcbe`, GitHub Actions run `37323090202` завершён успешно. Полный `test:experience` повторно прошёл на https://miroslavtitoo.github.io/rakurs-demo/ после публикации: первый вход, сторис, сохранение просмотра, ленты, дашборд, чат и 40 проверок адаптива. URL бота остаётся прежним.
