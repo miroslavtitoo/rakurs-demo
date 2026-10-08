@@ -8,7 +8,7 @@ const page = await browser.newPage({
 });
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
-await fs.mkdir("tmp/design-v6", { recursive: true });
+await fs.mkdir("tmp/design-v7", { recursive: true });
 async function route(path) {
   await page.goto(base + "#" + path);
   await expect(page.locator("main > [data-route]")).toHaveAttribute(
@@ -30,7 +30,7 @@ async function shot(name, full = true) {
     await page.evaluate(() => scrollTo(0, 0));
   }
   await page.waitForTimeout(350);
-  await page.screenshot({ path: `tmp/design-v6/${name}.png`, fullPage: full });
+  await page.screenshot({ path: `tmp/design-v7/${name}.png`, fullPage: full });
 }
 try {
   await page.goto(base + "#tgWebAppVersion=8.0&tgWebAppPlatform=android");
@@ -65,6 +65,25 @@ try {
   await route("/match/fox-metro");
   await expect(page.locator(".analysis-dashboard")).toHaveCount(0);
   await expect(page.locator("main")).not.toContainText("65%");
+  await page
+    .getByRole("button", { name: "О событии и данных", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toContainText("Прогноз зафиксирован");
+  await expect(page.getByRole("dialog")).not.toContainText("65%");
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByRole("button", { name: "О событии и данных", exact: true }),
+  ).toBeFocused();
+  const purchaseBottom = await page
+    .locator(".buy-analysis")
+    .evaluate((el) => el.getBoundingClientRect().bottom);
+  const navTop = await page
+    .locator(".bottom-nav")
+    .evaluate((el) => el.getBoundingClientRect().top);
+  expect(
+    purchaseBottom,
+    "purchase fits above mobile navigation on 390×844",
+  ).toBeLessThanOrEqual(navTop);
   await shot("locked-mobile");
   await page
     .getByRole("button", { name: "Купить прогноз · 199 ₽", exact: true })
@@ -75,6 +94,18 @@ try {
     .getByRole("button", { name: "Открыть без списания", exact: true })
     .click();
   await expect(page.locator(".analysis-dashboard")).toBeVisible();
+  await expect(page.locator(".evidence-card")).toHaveCount(5);
+  for (const card of await page.locator(".evidence-card").all()) {
+    await card.click();
+    await expect(page.getByRole("dialog")).toContainText("Источник");
+    await expect(page.getByRole("dialog")).toContainText("Выборка");
+    await expect(page.getByRole("dialog")).toContainText("п.п.");
+    await page.keyboard.press("Escape");
+    await expect(card).toBeFocused();
+  }
+  await page.getByRole("button", { name: /Вся логика прогноза/ }).click();
+  await expect(page.locator(".math-table tfoot")).toContainText("65%");
+  await page.keyboard.press("Escape");
   await page.reload();
   await expect(page.locator(".analysis-dashboard")).toBeVisible();
   await page.getByRole("button", { name: "Почему 65%?", exact: true }).click();

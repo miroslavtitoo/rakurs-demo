@@ -1,0 +1,1292 @@
+/* v7: one visual focal point per screen; details live in accessible dialogs. */
+.assistant-app {
+  --ink: #192541;
+  color: var(--ink);
+}
+.assistant-app .m-button {
+  border-radius: 14px;
+  font-size: 14px;
+  min-height: 50px;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+.assistant-app .m-button:active {
+  transform: scale(0.98);
+}
+.assistant-app .m-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.11em;
+}
+.assistant-banner {
+  min-height: 310px;
+  padding: 42px;
+  border-radius: 28px;
+  background:
+    radial-gradient(ellipse at 70% 40%, #e0e8ff, transparent 62%), #eef2fc;
+  border-color: #e5eafa;
+}
+.assistant-banner > div:first-child {
+  z-index: 1;
+}
+.assistant-banner h1 {
+  font-size: clamp(36px, 4vw, 52px);
+  line-height: 1.08;
+  letter-spacing: -0.055em;
+  color: #1d2e54;
+  margin: 19px 0 17px;
+}
+.assistant-banner h1 em {
+  font-style: normal;
+  color: #5273d9;
+}
+.assistant-banner p {
+  font-size: 15px;
+  color: #647293;
+  line-height: 1.65;
+}
+.assistant-banner .intro-help {
+  margin-top: 22px;
+  font-size: 13px;
+  color: #344d8c;
+  min-height: 36px;
+}
+.assistant-art {
+  width: 300px;
+  height: 260px;
+  margin-right: 115px;
+}
+.floating-note {
+  bottom: 6px;
+  right: 3px;
+  font-size: 12px;
+  border-radius: 20px;
+  transform: rotate(-5deg);
+  color: #4c5e90;
+  padding: 13px 20px;
+}
+.banner-subscription {
+  position: absolute;
+  right: 30px;
+  bottom: 30px;
+  border-radius: 16px;
+  z-index: 2;
+}
+.banner-subscription span {
+  font-size: 11px;
+}
+.banner-subscription strong {
+  font-size: 15px;
+}
+.ai-orb {
+  width: 270px;
+  height: 270px;
+  position: relative;
+  isolation: isolate;
+  flex-shrink: 0;
+}
+.ai-orb-halo {
+  position: absolute;
+  inset: 1%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #8eafff70,
+    #adc2ff18 55%,
+    transparent 70%
+  );
+  animation: halo-breathe 9s ease-in-out infinite;
+}
+.ai-orb-sphere {
+  position: absolute;
+  inset: 21%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(
+    circle at 29% 23%,
+    #ecfaff 0,
+    #98c9ff 13%,
+    #6085ed 31%,
+    #4351c7 53%,
+    #24246d 83%
+  );
+  box-shadow:
+    inset -9px -12px 20px #17236877,
+    inset 4px 5px 12px #ecfaffaa,
+    0 24px 40px #425eb142;
+  animation: orb-float 8s ease-in-out infinite;
+}
+.ai-orb-sphere i {
+  position: absolute;
+  width: 125%;
+  height: 51%;
+  left: -12%;
+  top: 14%;
+  border: 12px solid #e3e5ff88;
+  filter: blur(2px);
+  border-radius: 50%;
+  transform: rotate(-38deg);
+  box-shadow:
+    0 8px 14px #85bfffaa,
+    inset 0 -5px 10px #849dff;
+}
+.ai-orb-sphere b {
+  position: absolute;
+  inset: -20%;
+  background: conic-gradient(
+    from 20deg,
+    transparent,
+    #cea5ff77,
+    transparent 42%,
+    #91eeff88,
+    transparent 80%
+  );
+  mix-blend-mode: screen;
+  animation: orb-spin 24s linear infinite;
+}
+.ai-orb-sphere span {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 32% 18%, #ffffffb0, transparent 28%);
+}
+.ai-orb-ring {
+  position: absolute;
+  inset: 7%;
+  border: 1px solid #7897dc50;
+  border-radius: 50%;
+  transform: rotate(-30deg) scaleY(0.46);
+}
+.ai-orb-ring.ring-two {
+  inset: 0;
+  transform: rotate(39deg) scaleY(0.68);
+  border-color: #879ac326;
+}
+.ai-orb-satellite {
+  position: absolute;
+  top: 26%;
+  left: 9%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #9abaff;
+  box-shadow:
+    inset 2px 2px 3px white,
+    0 3px 8px #688de7;
+}
+.ai-orb.compact {
+  width: 144px;
+  height: 144px;
+}
+@keyframes orb-float {
+  50% {
+    transform: translateY(-8px) rotate(7deg);
+  }
+}
+@keyframes orb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes halo-breathe {
+  50% {
+    transform: scale(1.12);
+    opacity: 0.6;
+  }
+}
+.event-section-title {
+  margin: 34px 0 22px;
+}
+.event-section-title h2 {
+  font-size: 28px;
+  letter-spacing: -0.045em;
+}
+.event-section-title > span {
+  font-size: 12px;
+  color: #748098;
+}
+.sports-rail {
+  gap: 9px;
+}
+.sports-rail button {
+  border-radius: 13px;
+  font-size: 13px;
+  min-height: 46px;
+  color: #586782;
+}
+.event-status-tabs button {
+  font-size: 12px;
+  min-height: 44px;
+  color: #65728a;
+}
+.event-grid {
+  gap: 18px;
+}
+.event-card {
+  border-radius: 22px;
+  padding: 20px;
+  border-color: #e6eaf2;
+  box-shadow:
+    0 4px 8px #1e3a6603,
+    0 10px 35px #1e3a6604;
+}
+.event-card:hover {
+  box-shadow: 0 12px 35px #1e3a6610;
+  border-color: #b6c8f2;
+}
+.event-card .sport-label {
+  font-size: 12px;
+  color: #647590;
+}
+.event-card .event-identity {
+  gap: 13px;
+}
+.event-card .event-identity strong {
+  font-size: 19px;
+  letter-spacing: -0.025em;
+}
+.event-card .team-mark,
+.event-card .player-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
+.event-card-link {
+  padding-top: 19px;
+}
+.event-league {
+  font-size: 12px;
+  padding: 15px 0 0;
+  color: #78849a;
+}
+.event-card-status {
+  margin: 18px 0;
+}
+.event-status,
+.event-card-status > span:not(.event-status) {
+  font-size: 12px;
+}
+.event-card-bottom {
+  padding-top: 0;
+  border-top: 0;
+}
+.event-card-bottom .m-button {
+  width: 100%;
+  justify-content: space-between;
+  background: #eff3ff;
+  color: #365dc2;
+  font-size: 14px;
+  padding: 14px 17px;
+}
+.event-card-bottom .m-button:hover {
+  background: #e1e9ff;
+}
+.event-card-bottom .m-button.owned {
+  background: #edf7f2;
+  color: #287253;
+}
+.event-detail-layout {
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 24px;
+}
+.event-detail-header {
+  border-radius: 24px;
+  padding: 27px;
+}
+.event-detail-header .event-identity strong {
+  font-size: 23px;
+  line-height: 1.3;
+  letter-spacing: -0.035em;
+}
+.event-detail-meta .sport-label {
+  font-size: 12px;
+  color: #687690;
+}
+.event-detail-header .team-mark,
+.event-detail-header .player-mark {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+}
+.event-detail-state {
+  margin: 23px 0 15px;
+}
+.event-detail-state > span {
+  font-size: 12px;
+}
+.event-info-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 0;
+  font-size: 13px;
+  color: #506ca9;
+}
+.analysis-paywall {
+  padding: 32px;
+  border-radius: 26px;
+  background:
+    radial-gradient(ellipse at 50% 0, #3d4f9566, transparent 65%), #172342;
+  border: 1px solid #2b3b62;
+  color: white;
+  box-shadow: 0 18px 50px #223c7420;
+}
+.analysis-paywall .ai-orb {
+  margin: -24px 0 -8px;
+}
+.analysis-paywall .ai-orb-halo,
+.event-assistant-sidebar .ai-orb-halo {
+  background: radial-gradient(circle, #94b0ff40, transparent 67%);
+}
+.analysis-paywall > .m-eyebrow {
+  color: #bacaf2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.analysis-paywall h2 {
+  font-size: clamp(28px, 3vw, 39px);
+  letter-spacing: -0.045em;
+  line-height: 1.16;
+  margin: 16px 0;
+}
+.analysis-paywall h2 em {
+  font-style: normal;
+  color: #aabfff;
+}
+.analysis-paywall > p {
+  max-width: 330px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #b6c2dd;
+}
+.paywall-features {
+  margin: 24px 0;
+  gap: 20px;
+}
+.paywall-features span {
+  color: #d2dcf5;
+  font-size: 12px;
+  gap: 7px;
+}
+.paywall-features svg {
+  color: #afc4ff;
+}
+.analysis-paywall .buy-analysis {
+  width: min(100%, 370px);
+  min-height: 58px;
+  background: #d9e5ff;
+  color: #1b346e;
+  box-shadow:
+    0 5px 22px #5784ff26,
+    inset 0 1px white;
+  font-size: 15px;
+  border-radius: 16px;
+}
+.analysis-paywall .buy-analysis:hover {
+  background: #ecf2ff;
+  box-shadow: 0 8px 32px #7599ff42;
+}
+.analysis-paywall > .text-button {
+  color: #bdcbed;
+  font-size: 12px;
+  min-height: 44px;
+}
+.analysis-paywall > small {
+  color: #9dacc9;
+  font-size: 11px;
+  margin-top: 6px;
+}
+.event-assistant-sidebar {
+  padding: 25px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(155deg, #eaf0ff, #f8f9ff);
+  box-shadow: inset 0 1px white;
+}
+.event-assistant-sidebar .ai-orb {
+  margin: -18px auto 0;
+}
+.event-assistant-sidebar .m-eyebrow {
+  font-size: 10px;
+  color: #5b73b1;
+}
+.event-assistant-sidebar h2 {
+  font-size: 28px;
+  letter-spacing: -0.045em;
+  margin: 15px 0;
+}
+.event-assistant-sidebar > p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #647492;
+  margin-bottom: 22px;
+}
+.event-assistant-sidebar .m-button {
+  font-size: 13px;
+  padding: 13px 10px;
+  box-shadow: 0 6px 15px #386be61c;
+}
+.sidebar-fine {
+  font-size: 11px;
+  color: #697b9f;
+  margin: 13px 0 0;
+}
+.probability-panel {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 10% 10%, #e8efff, transparent 60%), white;
+  border-radius: 26px;
+  padding: 32px;
+  box-shadow: 0 12px 40px #233f7608;
+}
+.probability-panel .section-line {
+  margin-bottom: 25px;
+}
+.probability-panel .section-line .m-eyebrow {
+  font-size: 10px;
+  color: #6c7da0;
+  margin-bottom: 8px;
+}
+.probability-panel .section-line h2 {
+  font-size: 27px;
+  letter-spacing: -0.04em;
+}
+.probability-panel .small-demo {
+  font-size: 9px;
+  padding: 7px;
+}
+.probability-hero {
+  gap: 30px;
+  padding: 0 0 29px;
+}
+.probability-orbit {
+  width: 190px;
+  height: 190px;
+}
+.probability-orbit circle {
+  stroke: #dfe7f9;
+  stroke-width: 5;
+}
+.probability-orbit circle + circle {
+  stroke: #5278ed;
+  stroke-width: 7;
+  filter: drop-shadow(0 0 3px #4265ec30);
+}
+.probability-orbit strong {
+  font-size: 60px;
+  letter-spacing: -0.06em;
+  color: #2d4fbc;
+  line-height: 1.1;
+}
+.probability-orbit small {
+  font-size: 27px;
+  letter-spacing: -0.04em;
+}
+.probability-orbit > span > span {
+  font-size: 12px;
+  color: #7584a6;
+}
+.probability-verdict > span {
+  font-size: 12px;
+  color: #5f75a9;
+}
+.probability-verdict h2 {
+  font-size: 30px;
+  letter-spacing: -0.045em;
+  line-height: 1.2;
+  margin: 12px 0;
+}
+.probability-verdict p {
+  font-size: 13px;
+  color: #677793;
+}
+.probability-verdict .text-button {
+  background: #e7eeff;
+  color: #365fcb;
+  border-radius: 12px;
+  padding: 12px 15px;
+  font-size: 13px;
+  min-height: 44px;
+  margin-top: 18px;
+}
+.distribution-options {
+  gap: 12px;
+}
+.distribution-options > button {
+  padding: 16px;
+  border-radius: 16px;
+  background: #fafbfe;
+}
+.distribution-options > button:first-child {
+  background: #eff3ff;
+  border-color: #dce5ff;
+}
+.distribution-options > button > span {
+  font-size: 12px;
+  color: #586a8c;
+  min-height: 34px;
+  line-height: 1.4;
+}
+.distribution-options strong {
+  font-size: 34px;
+  margin: 10px 0 15px;
+}
+.distribution-options small {
+  font-size: 18px;
+}
+.distribution-options > button > div {
+  height: 5px;
+}
+.distribution-options i {
+  opacity: 1;
+  border-radius: 4px;
+}
+.dashboard-foot {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #7887a1;
+  margin-top: 19px;
+  text-align: center;
+}
+.evidence-panel {
+  border: 0;
+  padding: 14px 0 0;
+  background: transparent;
+}
+.evidence-panel .section-line h2 {
+  font-size: 27px;
+  letter-spacing: -0.04em;
+}
+.evidence-panel .section-line p {
+  font-size: 13px;
+  color: #76839b;
+  line-height: 1.6;
+  margin-top: 7px;
+}
+.evidence-grid {
+  gap: 14px;
+}
+.evidence-card {
+  position: relative;
+  padding: 24px;
+  border-radius: 21px;
+  background: white;
+  border-color: #e3e9f3;
+  box-shadow: 0 4px 20px #293e6503;
+}
+.evidence-card:hover {
+  border-color: #98b0e8;
+  background: #fafdff;
+}
+.factor-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #6786c8;
+}
+.factor-top > svg:first-child {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: #eff3fe;
+  padding: 10px;
+}
+.evidence-card:nth-child(2) .factor-top > svg:first-child {
+  background: #f1ecfc;
+  color: #9680ba;
+}
+.evidence-card:nth-child(3) .factor-top > svg:first-child {
+  background: #fcf1e9;
+  color: #b78864;
+}
+.evidence-card:nth-child(4) .factor-top > svg:first-child {
+  background: #e9f5f0;
+  color: #689e87;
+}
+.evidence-card > strong {
+  display: block;
+  font-size: 35px;
+  line-height: 1.15;
+  letter-spacing: -0.05em;
+  margin: 19px 0 9px;
+  color: #243651;
+}
+.evidence-card h3 {
+  font-size: 15px;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  margin: 0 0 15px;
+}
+.factor-pill {
+  display: inline-flex;
+  padding: 6px 9px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.3;
+  background: #edf6f0;
+  color: #4d8268;
+}
+.factor-pill.negative {
+  color: #985731 !important;
+  background: #fcf0e8;
+}
+.factor-pill.positive {
+  color: #39745a !important;
+}
+.factor-pill.neutral {
+  color: #647189 !important;
+  background: #edf0f6;
+}
+.evidence-card.unconfirmed {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  column-gap: 16px;
+  align-items: center;
+  padding: 20px 24px;
+}
+.unconfirmed .factor-top {
+  display: contents;
+}
+.unconfirmed .factor-top > svg:first-child {
+  grid-row: 1 / 3;
+}
+.unconfirmed .factor-top > svg:last-child {
+  grid-column: 3;
+  grid-row: 1 / 3;
+}
+.evidence-card.unconfirmed > strong {
+  display: none;
+}
+.evidence-card.unconfirmed h3 {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0 0 3px;
+}
+.unconfirmed .factor-pill {
+  grid-column: 2;
+  background: none;
+  padding: 0;
+}
+.analysis-takeaway {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  text-align: left;
+  padding: 23px;
+  margin-top: 18px;
+  background: #eaf0fc;
+  border: 1px solid #dce5f8;
+  border-radius: 20px;
+}
+.takeaway-icon {
+  width: 47px;
+  height: 47px;
+  display: grid;
+  place-items: center;
+  background: white;
+  border-radius: 15px;
+  color: #6a87ca;
+  flex-shrink: 0;
+}
+.analysis-takeaway > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.analysis-takeaway strong {
+  display: block;
+  font-size: 17px;
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+.analysis-takeaway span span {
+  display: block;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #6e7fa0;
+}
+.analysis-takeaway > svg {
+  color: #718bc4;
+}
+.m-backdrop {
+  backdrop-filter: blur(12px);
+  background: #13234566;
+}
+.m-modal {
+  border-radius: 26px;
+  box-shadow: 0 35px 100px #0c1d4140;
+}
+.m-modal-head {
+  padding: 19px 23px;
+}
+.m-modal-head > span {
+  font-size: 14px;
+}
+.math-content,
+.factor-explanation {
+  padding: 28px;
+}
+.factor-explanation h2 {
+  font-size: 37px;
+  letter-spacing: -0.045em;
+  margin: 20px 0 13px;
+}
+.factor-explanation > p,
+.math-content > p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #5c6c87;
+}
+.factor-explanation .factor-summary {
+  font-size: 18px;
+  color: #263954;
+  margin-bottom: 14px;
+}
+.factor-explanation dt {
+  font-size: 12px;
+  color: #71819b;
+}
+.factor-explanation dd {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.factor-explanation > small {
+  display: block;
+  font-size: 12px;
+  color: #78869d;
+  line-height: 1.6;
+}
+.math-content .data-explainer {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.math-table {
+  font-size: 12px;
+}
+.math-table th,
+.math-table td {
+  padding: 15px 9px;
+}
+.event-chat-context {
+  background: #edf2ff;
+}
+.assistant-chat-bubble,
+.user-chat-bubble {
+  font-size: 14px;
+  line-height: 1.7;
+  border-radius: 20px;
+}
+.chat-suggestions button {
+  font-size: 12px;
+  min-height: 42px;
+}
+.subscription-card {
+  border-radius: 26px;
+  box-shadow: 0 14px 50px #36599110;
+}
+.subscription-faq summary {
+  font-size: 15px;
+}
+.subscription-faq details p {
+  font-size: 14px;
+}
+@media (max-width: 1100px) {
+  .assistant-art {
+    margin-right: 0;
+  }
+  .banner-subscription {
+    display: none;
+  }
+  .event-detail-layout {
+    grid-template-columns: minmax(0, 1fr) 265px;
+    gap: 18px;
+  }
+  .event-assistant-sidebar {
+    padding: 20px;
+  }
+  .event-assistant-sidebar h2 {
+    font-size: 25px;
+  }
+  .probability-hero {
+    gap: 20px;
+  }
+  .probability-orbit {
+    width: 155px;
+    height: 155px;
+  }
+  .probability-verdict h2 {
+    font-size: 25px;
+  }
+  .probability-panel {
+    padding: 24px;
+  }
+}
+@media (max-width: 760px) {
+  .assistant-app main {
+    padding-top: 18px;
+  }
+  .assistant-banner {
+    min-height: 270px;
+    padding: 24px 25px;
+    border-radius: 25px;
+  }
+  .assistant-banner > div:first-child {
+    max-width: 100%;
+  }
+  .assistant-banner .m-eyebrow {
+    font-size: 9px;
+  }
+  .assistant-banner h1 {
+    font-size: clamp(32px, 8.5vw, 47px);
+    margin: 15px 0 12px;
+    max-width: 100%;
+  }
+  .assistant-banner h1 br {
+    display: block;
+  }
+  .assistant-banner p {
+    font-size: 13px;
+    max-width: 200px;
+  }
+  .assistant-banner p br {
+    display: none;
+  }
+  .assistant-banner .intro-help {
+    font-size: 12px;
+    margin-top: 16px;
+  }
+  .assistant-art {
+    width: 150px;
+    height: 150px;
+    position: absolute;
+    top: auto;
+    bottom: -11px;
+    right: -18px;
+    opacity: 1;
+  }
+  .assistant-art .ai-orb {
+    width: 180px;
+    height: 180px;
+  }
+  .floating-note {
+    display: none;
+  }
+  .event-section-title {
+    gap: 8px;
+    margin: 29px 0 21px;
+  }
+  .event-section-title h2 {
+    font-size: 26px;
+  }
+  .event-section-title > span {
+    font-size: 11px;
+  }
+  .sports-rail button {
+    font-size: 12px;
+    padding: 12px 15px;
+  }
+  .event-toolbar {
+    gap: 14px;
+    margin: 12px 0 19px;
+  }
+  .event-status-tabs {
+    gap: 21px;
+  }
+  .event-status-tabs button {
+    font-size: 12px;
+    min-height: 38px;
+  }
+  .event-grid {
+    gap: 16px;
+  }
+  .event-card {
+    padding: 19px;
+  }
+  .event-card .event-identity strong {
+    font-size: 19px;
+  }
+  .event-card .sport-label,
+  .event-league {
+    font-size: 12px;
+  }
+  .event-card-status > span:not(.event-status),
+  .event-status {
+    font-size: 11px;
+  }
+  .event-card-bottom .m-button {
+    font-size: 14px;
+    min-height: 49px;
+  }
+  .event-detail-layout {
+    gap: 18px;
+  }
+  .event-detail-header {
+    padding: 18px 21px;
+  }
+  .event-detail-meta {
+    margin-bottom: 14px;
+  }
+  .event-detail-state {
+    margin: 18px 0 9px;
+  }
+  .event-detail-header .event-identity {
+    gap: 16px;
+  }
+  .event-detail-header .event-identity strong {
+    font-size: 20px;
+  }
+  .event-detail-header .team-mark,
+  .event-detail-header .player-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+  }
+  .event-detail-meta .sport-label {
+    font-size: 11px;
+  }
+  .event-detail-state > span {
+    font-size: 11px;
+  }
+  .event-info-link {
+    font-size: 12px;
+    min-height: 35px;
+  }
+  .analysis-paywall {
+    padding: 24px 20px;
+    margin-top: 17px;
+  }
+  .analysis-paywall .ai-orb {
+    width: 100px;
+    height: 100px;
+    margin: -22px 0 -5px;
+  }
+  .analysis-paywall h2 {
+    font-size: 28px;
+    margin: 14px 0;
+  }
+  .analysis-paywall > p {
+    font-size: 13px;
+    max-width: 280px;
+  }
+  .paywall-features {
+    gap: 16px;
+    margin: 18px 0;
+  }
+  .paywall-features span {
+    font-size: 11px;
+    gap: 5px;
+  }
+  .analysis-paywall .buy-analysis {
+    font-size: 14px;
+    min-height: 54px;
+  }
+  .analysis-paywall > .text-button {
+    font-size: 11px;
+  }
+  .analysis-paywall > small {
+    font-size: 10px;
+  }
+  .event-assistant-sidebar {
+    position: relative;
+    top: auto;
+    padding: 25px;
+  }
+  .event-assistant-sidebar .ai-orb {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    right: -8px;
+    top: 0;
+    opacity: 0.8;
+  }
+  .event-assistant-sidebar .m-eyebrow {
+    font-size: 9px;
+  }
+  .event-assistant-sidebar h2 {
+    position: relative;
+    font-size: 27px;
+  }
+  .event-assistant-sidebar > p {
+    font-size: 13px;
+    max-width: 230px;
+    margin-bottom: 22px;
+  }
+  .event-assistant-sidebar .m-button {
+    font-size: 14px;
+  }
+  .sidebar-fine {
+    font-size: 10px;
+  }
+  .probability-panel {
+    padding: 24px 20px;
+    margin-top: 17px;
+  }
+  .probability-panel .section-line {
+    align-items: flex-start;
+    gap: 9px;
+    margin-bottom: 20px;
+  }
+  .probability-panel .section-line .m-eyebrow {
+    font-size: 9px;
+  }
+  .probability-panel .section-line h2 {
+    font-size: 23px;
+    max-width: 170px;
+    line-height: 1.15;
+  }
+  .probability-panel .small-demo {
+    font-size: 8px;
+    padding: 6px;
+  }
+  .probability-hero {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+    padding-bottom: 25px;
+  }
+  .probability-orbit {
+    width: 186px;
+    height: 186px;
+  }
+  .probability-orbit strong {
+    font-size: 60px;
+  }
+  .probability-orbit small {
+    font-size: 27px;
+  }
+  .probability-orbit > span > span {
+    font-size: 12px;
+  }
+  .probability-verdict > span {
+    justify-content: center;
+    font-size: 12px;
+  }
+  .probability-verdict h2 {
+    font-size: 28px;
+    margin: 10px 0;
+  }
+  .probability-verdict p {
+    font-size: 12px;
+  }
+  .probability-verdict .text-button {
+    font-size: 13px;
+    margin: 17px auto 0;
+    justify-content: center;
+  }
+  .distribution-options {
+    gap: 8px;
+  }
+  .distribution-options > button {
+    padding: 13px 10px;
+    border-radius: 13px;
+  }
+  .distribution-options > button > span {
+    font-size: 11px;
+    min-height: 35px;
+  }
+  .distribution-options > button > span svg {
+    display: none;
+  }
+  .distribution-options strong {
+    font-size: 30px;
+  }
+  .distribution-options small {
+    font-size: 16px;
+  }
+  .dashboard-foot {
+    font-size: 10px;
+    margin-top: 17px;
+  }
+  .evidence-panel {
+    padding: 12px 0 0;
+  }
+  .evidence-panel .section-line h2 {
+    font-size: 24px;
+  }
+  .evidence-panel .section-line p {
+    font-size: 12px;
+  }
+  .evidence-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .evidence-card {
+    padding: 18px 15px;
+    border-radius: 19px;
+  }
+  .factor-top > svg:first-child {
+    width: 36px;
+    height: 36px;
+    padding: 9px;
+  }
+  .factor-top > svg:last-child {
+    width: 16px;
+  }
+  .evidence-card > strong {
+    font-size: 29px;
+    margin: 19px 0 8px;
+  }
+  .evidence-card h3 {
+    font-size: 13px;
+    line-height: 1.4;
+    min-height: 36px;
+    margin-bottom: 13px;
+  }
+  .factor-pill {
+    font-size: 11px;
+    padding: 6px 7px;
+  }
+  .evidence-card.unconfirmed {
+    grid-template-columns: 36px 1fr auto;
+    padding: 18px 16px;
+    column-gap: 12px;
+  }
+  .evidence-card.unconfirmed h3 {
+    min-height: 0;
+    font-size: 14px;
+  }
+  .unconfirmed .factor-pill {
+    font-size: 11px;
+  }
+  .analysis-takeaway {
+    padding: 18px 16px;
+    gap: 12px;
+  }
+  .analysis-takeaway strong {
+    font-size: 15px;
+  }
+  .analysis-takeaway span span {
+    font-size: 11px;
+  }
+  .takeaway-icon {
+    width: 37px;
+    height: 42px;
+  }
+  .analysis-takeaway > svg {
+    width: 18px;
+  }
+  .math-content,
+  .factor-explanation {
+    padding: 23px;
+  }
+  .factor-explanation h2 {
+    font-size: 32px;
+  }
+  .math-content h2 {
+    font-size: 26px;
+  }
+  .factor-explanation > p,
+  .math-content > p {
+    font-size: 14px;
+  }
+  .factor-explanation .factor-summary {
+    font-size: 17px;
+  }
+  .math-table {
+    font-size: 11px;
+    min-width: 0;
+    table-layout: fixed;
+    overflow-wrap: anywhere;
+  }
+  .math-table th,
+  .math-table td {
+    padding: 13px 6px;
+  }
+  .math-table th:first-child,
+  .math-table td:first-child {
+    width: 40%;
+    min-width: 0;
+  }
+  .m-modal-head {
+    padding: 16px 20px;
+  }
+  .m-modal-head > span {
+    font-size: 13px;
+  }
+  .event-chat-modal {
+    border-radius: 0;
+  }
+  .assistant-chat-bubble,
+  .user-chat-bubble {
+    font-size: 14px;
+  }
+  .event-chat-composer > small {
+    font-size: 9px;
+  }
+  .subscription-faq summary {
+    font-size: 14px;
+  }
+}
+@media (max-width: 360px) {
+  .assistant-banner {
+    padding: 24px 20px;
+    min-height: 270px;
+  }
+  .assistant-banner h1 {
+    font-size: 30px;
+  }
+  .assistant-art {
+    right: -45px;
+    bottom: -17px;
+  }
+  .assistant-banner p {
+    max-width: 177px;
+  }
+  .assistant-banner .intro-help {
+    font-size: 11px;
+  }
+  .event-detail-header .event-identity strong {
+    font-size: 18px;
+  }
+  .analysis-paywall h2 {
+    font-size: 24px;
+  }
+  .paywall-features {
+    gap: 10px;
+  }
+  .paywall-features span {
+    font-size: 10px;
+  }
+  .analysis-paywall .buy-analysis {
+    font-size: 12px;
+  }
+  .probability-panel {
+    padding: 22px 16px;
+  }
+  .probability-panel .section-line h2 {
+    font-size: 22px;
+  }
+  .evidence-card {
+    padding: 15px 12px;
+  }
+  .evidence-card > strong {
+    font-size: 25px;
+  }
+  .evidence-card h3 {
+    font-size: 12px;
+  }
+  .factor-pill {
+    padding: 5px;
+    font-size: 10px;
+  }
+  .distribution-options strong {
+    font-size: 26px;
+  }
+  .distribution-options > button {
+    padding: 10px 7px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-orb *,
+  .assistant-app *,
+  .m-backdrop * {
+    animation: none !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}

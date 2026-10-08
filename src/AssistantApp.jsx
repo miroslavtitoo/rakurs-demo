@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { Modal, useSaved, Logo, Stories } from "./AssistantUI.jsx";
 import TeamMark from "./TeamMark.jsx";
+import AIOrb from "./AIOrb.jsx";
 import {
   fixtures,
   SPORTS,
@@ -52,6 +53,7 @@ import { marketRoute } from "./marketData.js";
 import { initTelegram, haptic } from "./telegram.js";
 import "./market.css";
 import "./assistant.css";
+import "./assistantDesign.css";
 
 const statuses = [
   ["all", "Все события"],
@@ -137,9 +139,10 @@ function EventCard({ event: e, app }) {
   return (
     <motion.article
       className="event-card"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.08 }}
+      transition={{ duration: 0.45 }}
     >
       <div className="event-card-top">
         <span
@@ -185,19 +188,6 @@ function EventCard({ event: e, app }) {
         )}
       </div>
       <div className="event-card-bottom">
-        <span>
-          {access ? (
-            <>
-              <CheckCircle2 size={14} />
-              Анализ открыт
-            </>
-          ) : (
-            <>
-              <Sparkles size={14} />
-              AI-анализ готов
-            </>
-          )}
-        </span>
         <button
           className={`m-button ${access ? "owned" : ""}`}
           onClick={() => app.go("/match/" + e.id)}
@@ -244,14 +234,14 @@ function Catalog({ app, initialStatus = "all", library = false }) {
               ВАШ AI-АССИСТЕНТ
             </span>
             <h1>
-              Сначала данные.
+              Большой спорт.
               <br />
-              Потом — ваш выбор.
+              <em>Понятный AI.</em>
             </h1>
             <p>
-              Откройте матч. Узнайте прогноз.
+              Прогнозы с объяснением.
               <br />
-              Разберитесь вместе с AI.
+              По каждому событию.
             </p>
             <button className="intro-help" onClick={app.stories}>
               Как это работает
@@ -259,14 +249,7 @@ function Catalog({ app, initialStatus = "all", library = false }) {
             </button>
           </div>
           <div className="assistant-art" aria-hidden="true">
-            <div className="orbital-ring" />
-            <div className="analysis-core">
-              <Sparkles size={40} />
-            </div>
-            <span className="floating-note">
-              <Layers3 size={15} />
-              Факты → анализ → прогноз
-            </span>
+            <AIOrb />
           </div>
           <button
             className="banner-subscription"
@@ -394,52 +377,39 @@ function Catalog({ app, initialStatus = "all", library = false }) {
 function Paywall({ event: e, app }) {
   return (
     <section className="analysis-paywall">
-      <div className="locked-preview" aria-hidden="true">
-        <div className="ghost-chart">
-          <i />
-          <i />
-          <i />
-          <i />
-          <i />
-        </div>
-        <div className="ghost-lines">
-          <i />
-          <i />
-          <i />
-        </div>
-      </div>
-      <span className="lock-emblem">
-        <LockKeyhole size={24} />
+      <AIOrb compact />
+      <span className="m-eyebrow">
+        <Sparkles size={14} /> RAKURS AI
       </span>
-      <span className="m-eyebrow">ПОЛНЫЙ AI-РАЗБОР</span>
-      <h2>Что стоит за прогнозом?</h2>
-      <p>
-        Вероятности исходов, данные и вклад каждого фактора.
-        <br />А ещё — чат, в котором можно обсудить этот матч.
-      </p>
+      <h2>
+        У матча есть цифры.
+        <br />
+        <em>У вас — понимание.</em>
+      </h2>
+      <p>Откройте прогноз, аргументы и личный чат об этом событии.</p>
       <div className="paywall-features">
         <span>
-          <Check size={15} />
-          Вероятности
+          <Activity size={17} />
+          Шансы
         </span>
         <span>
-          <Check size={15} />
-          Источники и расчёт
+          <Layers3 size={17} />
+          Аргументы
         </span>
         <span>
-          <Check size={15} />
-          Чат с AI
+          <MessageCircle size={17} />
+          AI-чат
         </span>
       </div>
       <button className="m-button buy-analysis" onClick={() => app.checkout(e)}>
         Купить прогноз · {currency(PRICE)}
-        <ArrowRight size={17} />
+        <ArrowRight size={19} />
       </button>
       <button className="text-button" onClick={() => app.go("/subscription")}>
         Все события за 1 000 ₽ / месяц
-        <ArrowUpRight size={14} />
+        <ArrowUpRight size={15} />
       </button>
-      <small>Демо: деньги не спишутся. Карта не нужна.</small>
+      <small>Демопокупка · без списания денег</small>
     </section>
   );
 }
@@ -449,8 +419,8 @@ function Distribution({ event: e, app }) {
     <section className="probability-panel">
       <div className="section-line">
         <div>
-          <span className="m-eyebrow">ПРЕДМАТЧЕВАЯ ОЦЕНКА</span>
-          <h2>Как AI видит исход</h2>
+          <span className="m-eyebrow">ПРОГНОЗ ДО МАТЧА</span>
+          <h2>Главное за секунду</h2>
         </div>
         <span className="small-demo">ДЕМОМОДЕЛЬ</span>
       </div>
@@ -476,7 +446,7 @@ function Distribution({ event: e, app }) {
               {e.probabilities[0]}
               <small>%</small>
             </strong>
-            <span>победа первого</span>
+            <span>шанс победы</span>
           </span>
         </div>
         <div className="probability-verdict">
@@ -485,7 +455,7 @@ function Distribution({ event: e, app }) {
             Выбор AI
           </span>
           <h2>{e.pick}</h2>
-          <p>{e.market}. Оценка основана на данных до начала матча.</p>
+          <p>{e.market}</p>
           <button className="text-button" onClick={() => app.math(e)}>
             Почему {e.probabilities[0]}%?
             <ArrowUpRight size={14} />
@@ -518,85 +488,67 @@ function Distribution({ event: e, app }) {
           </button>
         ))}
       </div>
-      <p className="dashboard-foot">
-        Сумма исходов — 100%. Это условная оценка, а не обещание выигрыша.
-      </p>
+      <p className="dashboard-foot">Демо-оценка · не гарантия результата</p>
     </section>
   );
 }
 function Dashboard({ event: e, app }) {
+  const icons = [Activity, Trophy, ShieldCheck, CalendarDays, Info];
   return (
     <div className="analysis-dashboard" id="analysis-dashboard" tabIndex={-1}>
       <Distribution event={e} app={app} />
       <section className="evidence-panel">
         <div className="section-line">
           <div>
-            <span className="m-eyebrow">ОТ ДАННЫХ К ВЕРОЯТНОСТИ</span>
-            <h2>Что повлияло на оценку</h2>
+            <h2>Почему AI так думает</h2>
+            <p>Коротко — здесь. Подробно — по нажатию.</p>
           </div>
-          <span>Нажмите на фактор</span>
         </div>
         <div className="evidence-grid">
-          {e.factors.map((f, i) => (
-            <button
-              className={`evidence-card ${f.delta === 0 ? "unconfirmed" : ""}`}
-              key={f.id}
-              onClick={() => app.factor(e, f)}
-            >
-              <span className="factor-top">
-                <span>
-                  0{i + 1} / {f.kind}
+          {e.factors.map((f, i) => {
+            const Icon = icons[i];
+            return (
+              <motion.button
+                className={`evidence-card ${f.delta === 0 ? "unconfirmed" : ""}`}
+                key={f.id}
+                onClick={() => app.factor(e, f)}
+                initial={{ opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.4, delay: (i % 2) * 0.06 }}
+              >
+                <span className="factor-top">
+                  <Icon size={21} />
+                  <ArrowUpRight size={18} />
                 </span>
-                <ArrowUpRight size={15} />
-              </span>
-              <strong>{f.metric}</strong>
-              <h3>{f.name}</h3>
-              <p>{f.caption}</p>
-              <div className="factor-contribution">
+                <strong>{f.metric}</strong>
+                <h3>{f.name}</h3>
                 <span
-                  className={
-                    f.delta > 0
-                      ? "positive"
-                      : f.delta < 0
-                        ? "negative"
-                        : "neutral"
-                  }
+                  className={`factor-pill ${f.delta > 0 ? "positive" : f.delta < 0 ? "negative" : "neutral"}`}
                 >
-                  {signed(f.delta)} п.п.
+                  {f.delta > 0
+                    ? "В пользу победы"
+                    : f.delta < 0
+                      ? "Снижает шансы"
+                      : "Не влияет на прогноз"}
                 </span>
-                <small>
-                  {f.delta === 0 ? "в прогноз не включён" : "к победе первого"}
-                </small>
-              </div>
-            </button>
-          ))}
-        </div>
-        <div className="data-explainer">
-          <ShieldCheck size={18} />
-          <span>
-            Публичная информация ≠ проверенный факт. Слухи и неподтверждённые
-            публикации не меняют оценку.
-          </span>
+              </motion.button>
+            );
+          })}
         </div>
       </section>
-      <section className="analysis-conclusion">
-        <span>
-          <CheckCircle2 size={19} />
-          Итог анализа
+      <button className="analysis-takeaway" onClick={() => app.math(e)}>
+        <span className="takeaway-icon">
+          <Layers3 size={24} />
         </span>
-        <h2>
-          {e.pick} · {e.probabilities[0]}%
-        </h2>
-        <p>
-          {e.market}. Форма и история встреч дают преимущество, но состояние
-          участников и состав могут его изменить. Нажмите на любой фактор выше,
-          чтобы проверить аргументы.
-        </p>
-        <button className="m-secondary" onClick={() => app.chat(e)}>
-          <MessageCircle size={17} />
-          Обсудить этот вывод
-        </button>
-      </section>
+        <span>
+          <strong>Вся логика прогноза</strong>
+          <span>
+            От исходных данных до {e.probabilities[0]}% — шаг за шагом
+          </span>
+        </span>
+        <ArrowUpRight size={22} />
+      </button>
     </div>
   );
 }
@@ -649,11 +601,10 @@ function Detail({ event: e, app }) {
                 </span>
               )}
             </div>
-            <p>{e.summary}</p>
-            <div className="analysis-timestamp">
-              <CalendarDays size={14} />
-              Прогноз зафиксирован: {e.analysisAt}
-            </div>
+            <button className="event-info-link" onClick={() => app.info(e)}>
+              О событии и данных
+              <ArrowUpRight size={16} />
+            </button>
           </section>
           {access ? (
             <Dashboard event={e} app={app} />
@@ -662,48 +613,74 @@ function Detail({ event: e, app }) {
           )}
         </div>
         <aside className="event-assistant-sidebar">
-          <div className="assistant-avatar">
-            <Sparkles size={25} />
-          </div>
-          <span className="m-eyebrow">RAKURS ASSISTANT</span>
+          <AIOrb compact />
+          <span className="m-eyebrow">ВАШ AI-АССИСТЕНТ</span>
           <h2>
-            Не просто цифра.
+            Есть вопрос?
             <br />
-            Понятный ответ.
+            Разберём вместе.
           </h2>
-          <p>
-            Почему такой шанс? Что изменит состав? А если у вас есть свои
-            данные?
-          </p>
+          <p>Обсудите прогноз или предложите свои данные.</p>
           <button
             className="m-button"
             onClick={() => (access ? app.chat(e) : app.checkout(e))}
           >
-            {access ? <MessageCircle size={16} /> : <LockKeyhole size={16} />}{" "}
+            <MessageCircle size={18} />
             {access ? "Чат по событию" : "Открыть анализ и чат"}
+            <ArrowUpRight size={16} />
           </button>
           <span className="sidebar-fine">
             {access
-              ? "Доступ открыт · ответы в деморежиме"
-              : "Включён в прогноз за 199 ₽"}
+              ? "Демо · подготовленные ответы"
+              : "Чат включён в прогноз за 199 ₽"}
           </span>
-          <div className="sidebar-sources">
-            <FileText size={16} />
-            <p>
-              Форма · личные встречи
-              <br />
-              Состав · условия подготовки
-            </p>
-          </div>
-          <small>
-            Демоисточники. Реальный сбор открытых данных не подключён.
-          </small>
         </aside>
       </div>
     </>
   );
 }
 
+function EventInfo({ event: e, close }) {
+  return (
+    <Modal title="О событии и данных" close={close} kind="event-info-modal">
+      <div className="factor-explanation">
+        <span className="small-demo">ДЕМОНСТРАЦИОННОЕ СОБЫТИЕ</span>
+        <h2>
+          {e.home} — {e.away}
+        </h2>
+        <p>{e.summary}</p>
+        <dl>
+          <div>
+            <dt>Турнир</dt>
+            <dd>
+              {e.sport} · {e.league}
+            </dd>
+          </div>
+          <div>
+            <dt>Прогноз зафиксирован</dt>
+            <dd>{e.analysisAt}</dd>
+          </div>
+          <div>
+            <dt>Снимок событий</dt>
+            <dd>{SNAPSHOT_V6}</dd>
+          </div>
+          <div>
+            <dt>Что анализируем</dt>
+            <dd>Форма, личные встречи, состав и условия подготовки.</dd>
+          </div>
+        </dl>
+        <p>
+          Предматчевый прогноз не меняется вслед за счётом. Все события,
+          сведения и ответы вымышлены; внешние источники и реальная AI-модель не
+          подключены.
+        </p>
+        <small>
+          Слухи, праздники и неподтверждённые публикации не меняют оценку.
+        </small>
+      </div>
+    </Modal>
+  );
+}
 function MathExplanation({ event: e, close }) {
   return (
     <Modal title="Как получилась вероятность" close={close} kind="math-modal">
@@ -775,10 +752,11 @@ function FactorExplanation({ event: e, factor: f, close }) {
       <div className="factor-explanation">
         <span className="small-demo">ПРИМЕР ОТКРЫТОГО ИСТОЧНИКА</span>
         <h2>{f.metric}</h2>
+        <p className="factor-summary">{f.caption}</p>
         <p>{f.observed}</p>
         <dl>
           <div>
-            <dt>Источник</dt>
+            <dt>Источник · {f.kind}</dt>
             <dd>{f.source}</dd>
           </div>
           <div>
@@ -1038,7 +1016,7 @@ export default function AssistantApp() {
   }, []);
   useEffect(() => {
     scrollTo(0, 0);
-    document.querySelector("main")?.focus();
+    document.querySelector("main")?.focus({ preventScroll: true });
   }, [route]);
   useEffect(() => {
     if (!toast) return;
@@ -1080,6 +1058,7 @@ export default function AssistantApp() {
     },
     checkout: (e) => setModal({ type: "checkout", event: e }),
     stories: () => setModal({ type: "stories" }),
+    info: (e) => setModal({ type: "info", event: e }),
     math: (e) => {
       if (access(e.id)) setModal({ type: "math", event: e });
     },
@@ -1180,6 +1159,8 @@ export default function AssistantApp() {
       <AnimatePresence>
         {modal?.type === "stories" ? (
           <Stories close={close} />
+        ) : modal?.type === "info" ? (
+          <EventInfo event={modal.event} close={close} />
         ) : modal?.type === "math" && modalHasAccess ? (
           <MathExplanation event={modal.event} close={close} />
         ) : modal?.type === "factor" && modalHasAccess ? (

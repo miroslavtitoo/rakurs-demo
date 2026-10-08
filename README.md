@@ -1,4 +1,4 @@
-# Ракурс AI — ассистент по спортивным событиям v6
+# Ракурс AI — ассистент по спортивным событиям v7
 
 Выбрать событие → открыть анализ за 199 ₽ или по подписке → изучить вероятности и источники → обсудить матч с AI.
 
@@ -11,6 +11,8 @@
 GitHub Actions публикует `main` на GitHub Pages. URL сохраняется. BotFather уже настроен владельцем; после обновления достаточно переоткрыть Mini App. Токен бота не нужен и не хранится во frontend.
 
 ## Новая версия
+
+Визуальная редакция v7: крупные цифры и заголовки, анимированный AI-объект, контрастная покупка, короткие выводы. Источники, пояснения и расчёты раскрываются в отдельных окнах. `test:design` проверяет движение, reduced motion и мобильные диалоги.
 
 - 19 вымышленных событий: футбол, киберспорт, теннис, баскетбол, хоккей.
 - Фильтры спорта и статуса: все, ближайшие, сейчас идут, завершённые. Поиск команд, игроков и турниров; избранное.
@@ -38,17 +40,18 @@ npm run dev
 npm test
 npm run test:e2e
 npm run test:telegram
+npm run test:design
 npm run build
 node scripts/check-build.mjs
 ```
 
-`test:e2e` / `test:experience` запускают актуальный `scripts/check-assistant.mjs` (нужен dev server). `DEMO_URL` меняет адрес на публичную версию. `check-build.mjs` сам запускает сервер production-сборки в подпапке `/rakurs-demo/`. Снимки: `tmp/design-v6/`, превью и ZIP: `output/`.
+`test:e2e` / `test:experience` запускают актуальный `scripts/check-assistant.mjs` (нужен dev server). `DEMO_URL` меняет адрес на публичную версию. `check-build.mjs` сам запускает сервер production-сборки в подпапке `/rakurs-demo/`. Снимки: `tmp/design-v7/`, превью и ZIP: `output/`.
 
 ## Данные и состояние
 
 Локальные ключи: `rakurs:aiPurchases`, `rakurs:favorites`, `rakurs:aiSubscription`, `rakurs:eventChat:<id>`, `rakurs:assistantOnboardingSeen`. История доступна на этом устройстве. Старые основные покупки v4 (`read-<id>`) и покупки v5 сохраняют доступ. `/results` ведёт к завершённым событиям, старые ссылки материалов — к событиям.
 
-Текущий entry — `src/AssistantApp.jsx`. Общие диалоги/сторис в `AssistantUI.jsx`, данные и модель деморасчёта в `assistantData.js`, стили `assistant.css` поверх `market.css`. Исторические v2–v5 приложения сохранены, но не являются текущим entry.
+Текущий entry — `src/AssistantApp.jsx`. Общие диалоги/сторис в `AssistantUI.jsx`, данные и модель деморасчёта в `assistantData.js`, стили `assistantDesign.css` поверх `assistant.css` и `market.css`, общий декоративный компонент `AIOrb.jsx`. Исторические v2–v5 приложения сохранены, но не являются текущим entry.
 
 ## Сценарий презентации
 

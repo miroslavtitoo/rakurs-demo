@@ -10,7 +10,8 @@
     "test": "node --test tests/*.test.js",
     "test:telegram": "node scripts/check-telegram-launch.mjs",
     "test:experience": "node scripts/check-experience.mjs",
-    "test:e2e": "node scripts/check-browser.mjs"
+    "test:e2e": "node scripts/check-browser.mjs",
+    "test:design": "node scripts/check-design.mjs"
   },
   "dependencies": {
     "@fontsource/dm-sans": "^5.3.0",
