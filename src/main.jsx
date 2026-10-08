@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import App from "./MarketApp.jsx";
+import App from "./AssistantApp.jsx";
 
 class ErrorBoundary extends React.Component {
   state = { error: false };

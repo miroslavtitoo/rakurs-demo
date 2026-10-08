@@ -31,7 +31,7 @@ try {
       reducedMotion: "reduce",
     });
     await context.addInitScript(() =>
-      localStorage.setItem("rakurs:marketOnboardingSeen", "true"),
+      localStorage.setItem("rakurs:assistantOnboardingSeen", "true"),
     );
     const page = await context.newPage();
     page.on("pageerror", (error) => errors.push(error.message));
