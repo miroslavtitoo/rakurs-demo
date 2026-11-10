@@ -18,7 +18,7 @@
 - `npm run test:telegram` — launch hash, настоящий SDK с синтетическими launch-параметрами, reload и Back.
 - `npm run build`, затем `node scripts/check-build.mjs` — production, локальные ресурсы и запуск в подпапке `/rakurs-demo/`.
 
-Для публикации используется существующий GitHub Actions workflow: push в `main` выполняет `npm ci`, `npm test`, `npm run build` и выкладывает `dist` в GitHub Pages. Эта локальная редакция сама по себе не означает обновления публичного сайта. URL и бот сохраняются; токены не нужны. Статический хостинг должен раздавать содержимое dist целиком, включая assets, fonts и images; маршруты используют hash.
+Для публикации используется существующий GitHub Actions workflow: push в `main` выполняет `npm ci`, `npm test`, `npm run build` и выкладывает `dist` в GitHub Pages. Diverge v8.1 опубликована 10 ноября 2026: commit `fe30a24`, [успешный workflow](https://github.com/miroslavtitoo/rakurs-demo/actions/runs/42844021418). Публичные E2E, мобильные сценарии и Telegram launch-проверки прошли. URL и бот сохраняются; токены не нужны. Статический хостинг должен раздавать содержимое dist целиком, включая assets, fonts и images; маршруты используют hash.
 
 ## Доступ и демосостояние
 
