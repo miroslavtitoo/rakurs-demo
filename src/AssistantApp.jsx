@@ -33,8 +33,20 @@ import {
   FileText,
   CalendarDays,
   Info,
+  Bell,
 } from "lucide-react";
 import { Modal, useSaved, Logo, Stories } from "./AssistantUI.jsx";
+import {
+  PdfStories,
+  AuthScreen,
+  PdfNav,
+  PdfCatalog,
+  Profile,
+  GeneralChat,
+  ExtraModal,
+  EventOrder,
+  DivergeLogo,
+} from "./PdfScreens.jsx";
 import TeamMark from "./TeamMark.jsx";
 import AIOrb from "./AIOrb.jsx";
 import {
@@ -54,6 +66,8 @@ import { initTelegram, haptic } from "./telegram.js";
 import "./market.css";
 import "./assistant.css";
 import "./assistantDesign.css";
+import "./pdfDesign.css";
+import "./mobilePolish.css";
 
 const statuses = [
   ["all", "Все события"],
@@ -379,12 +393,12 @@ function Paywall({ event: e, app }) {
     <section className="analysis-paywall">
       <AIOrb compact />
       <span className="m-eyebrow">
-        <Sparkles size={14} /> RAKURS AI
+        <Sparkles size={14} /> DIVERGE AI
       </span>
       <h2>
-        У матча есть цифры.
+        Откройте
         <br />
-        <em>У вас — понимание.</em>
+        <em>прогноз</em>
       </h2>
       <p>Откройте прогноз, аргументы и личный чат об этом событии.</p>
       <div className="paywall-features">
@@ -456,7 +470,10 @@ function Distribution({ event: e, app }) {
           </span>
           <h2>{e.pick}</h2>
           <p>{e.market}</p>
-          <button className="text-button" onClick={() => app.math(e)}>
+          <button
+            className="text-button"
+            onClick={() => (app.access(e.id) ? app.math(e) : app.checkout(e))}
+          >
             Почему {e.probabilities[0]}%?
             <ArrowUpRight size={14} />
           </button>
@@ -466,7 +483,7 @@ function Distribution({ event: e, app }) {
         {e.labels.map((label, i) => (
           <button
             key={label}
-            onClick={() => app.math(e)}
+            onClick={() => (app.access(e.id) ? app.math(e) : app.checkout(e))}
             style={{ "--outcome": colors[i] }}
           >
             <span>
@@ -537,7 +554,10 @@ function Dashboard({ event: e, app }) {
           })}
         </div>
       </section>
-      <button className="analysis-takeaway" onClick={() => app.math(e)}>
+      <button
+        className="analysis-takeaway"
+        onClick={() => (app.access(e.id) ? app.math(e) : app.checkout(e))}
+      >
         <span className="takeaway-icon">
           <Layers3 size={24} />
         </span>
@@ -608,8 +628,23 @@ function Detail({ event: e, app }) {
           </section>
           {access ? (
             <Dashboard event={e} app={app} />
+          ) : app.outcomeAccess(e.id) ? (
+            <>
+              <Distribution event={e} app={app} />
+              <Paywall event={e} app={app} />
+            </>
           ) : (
-            <Paywall event={e} app={app} />
+            <>
+              <Paywall event={e} app={app} />
+              {app.outcomeCredits > 0 && (
+                <button
+                  className="m-button redeem-outcome"
+                  onClick={() => app.redeemOutcome(e)}
+                >
+                  Открыть только исход · из пакета
+                </button>
+              )}
+            </>
           )}
         </div>
         <aside className="event-assistant-sidebar">
@@ -754,6 +789,39 @@ function FactorExplanation({ event: e, factor: f, close }) {
         <h2>{f.metric}</h2>
         <p className="factor-summary">{f.caption}</p>
         <p>{f.observed}</p>
+        {(f.id === "form" || f.id === "h2h") && (
+          <div className="factor-match-list">
+            <div>
+              <span>Последние 5 встреч · демо</span>
+              <span>Результат</span>
+            </div>
+            {[0, 1, 2, 3, 4].map((i) => {
+              const win = i < (f.id === "form" ? 4 : 3);
+              return (
+                <div key={i}>
+                  <span>
+                    {win ? "Победа" : "Поражение"}{" "}
+                    {f.id === "h2h"
+                      ? `в матче с ${e.away}`
+                      : `в матче с «${["Вектор", "Орион", "Спектр", "Союз", "Вымпел"][i]}»`}
+                  </span>
+                  <strong className={win ? "positive" : "negative"}>
+                    {win ? "В" : "П"}
+                  </strong>
+                </div>
+              );
+            })}
+            <h3>Контекст результатов</h3>
+            <p>
+              Подготовленные примеры согласованы с агрегатом:{" "}
+              {f.id === "form"
+                ? "4 победы в 5 встречах"
+                : "3 победы и 2 поражения"}
+              . Условия различаются; эта выборка сама по себе не определяет
+              вероятность.
+            </p>
+          </div>
+        )}
         <dl>
           <div>
             <dt>Источник · {f.kind}</dt>
@@ -821,7 +889,7 @@ function EventChat({ event: e, close }) {
         <div className="assistant-chat-bubble">
           <span>
             <Sparkles size={12} />
-            Ракурс AI
+            Diverge AI
           </span>
           <p>
             Разберём {e.home} — {e.away}. Моя предматчевая оценка —{" "}
@@ -845,7 +913,7 @@ function EventChat({ event: e, close }) {
             {m.role === "assistant" && (
               <span>
                 <Sparkles size={12} />
-                Ракурс AI
+                Diverge AI
               </span>
             )}
             <p>{m.text}</p>
@@ -891,7 +959,7 @@ function EventChat({ event: e, close }) {
 }
 
 function Subscription({ app }) {
-  const active = activeSubscription(app.subscription, app.now);
+  const active = !!app.user && activeSubscription(app.subscription, app.now);
   return (
     <div className="subscription-page">
       <div className="page-heading">
@@ -904,7 +972,7 @@ function Subscription({ app }) {
           <div className="subscription-symbol">
             <Sparkles size={34} />
           </div>
-          <span className="small-demo">RAKURS PLUS · ДЕМО</span>
+          <span className="small-demo">DIVERGE PLUS · ДЕМО</span>
           <h2>{active ? "Все прогнозы открыты" : "Каждый матч — в деталях"}</h2>
           <p>Футбол, киберспорт, теннис, баскетбол и хоккей.</p>
           <div className="subscription-price">
@@ -992,6 +1060,7 @@ function Subscription({ app }) {
 }
 
 export default function AssistantApp() {
+  const reduced = useReducedMotion();
   const [route, setRoute] = useState(() =>
     marketRoute(routeFromHash(location.hash)),
   );
@@ -999,7 +1068,19 @@ export default function AssistantApp() {
   const [legacy] = useSaved("purchases", []);
   const [favorites, setFavorites] = useSaved("favorites", []);
   const [subscription, setSubscription] = useSaved("aiSubscription", null);
-  const [seen, setSeen] = useSaved("assistantOnboardingSeen", false);
+  const [seen, setSeen] = useSaved("pdfOnboardingSeen", false);
+  const [user, setUser] = useSaved("demoUser", null);
+  const [giftClaimed, setGiftClaimed] = useSaved("demoGiftClaimed", false);
+  const [credits, setCredits] = useSaved("analysisCredits", 0);
+  const [outcomeCredits, setOutcomeCredits] = useSaved("outcomeCredits", 0);
+  const [outcomes, setOutcomes] = useSaved("outcomePurchases", []);
+  const [balance, setBalance] = useSaved("demoBalance", 0);
+  const [transactions, setTransactions] = useSaved("demoTransactions", []);
+  const [cards, setCards] = useSaved("demoCards", [
+    { id: "mir", brand: "МИР", last: "6263", primary: true },
+    { id: "visa", brand: "VISA", last: "1521", primary: false },
+  ]);
+  const [pending, setPending] = useState(null);
   const [modal, setModal] = useState(() => (seen ? null : { type: "stories" }));
   const [toast, setToast] = useState("");
   const [justUnlocked, setJustUnlocked] = useState(null);
@@ -1029,7 +1110,12 @@ export default function AssistantApp() {
     haptic();
   };
   function close() {
-    if (modal?.type === "stories") setSeen(true);
+    if (modal?.type === "stories") {
+      setSeen(true);
+      setModal(modal.after || (!user && !seen ? { type: "auth" } : null));
+      return;
+    }
+    if (modal?.type === "auth") setPending(null);
     setModal(null);
   }
   useEffect(() => {
@@ -1041,9 +1127,101 @@ export default function AssistantApp() {
     tg.BackButton.onClick(back);
     return () => tg.BackButton.offClick(back);
   }, [route, modal]);
-  const access = (id) => canAccess(id, purchases, subscription, now, legacy);
+  const access = (id) =>
+    !!user && canAccess(id, purchases, subscription, now, legacy);
+  const requireLogin = (next) => {
+    if (user) setModal(next);
+    else {
+      setPending(next);
+      setModal({ type: "auth", mode: "login" });
+    }
+  };
+  const record = (label, amount) =>
+    setTransactions((p) => [{ label, amount, date: Date.now() }, ...p]);
   const app = {
     go,
+    user,
+    credits,
+    outcomeCredits,
+    balance,
+    transactions,
+    cards,
+    open: setModal,
+    require: requireLogin,
+    toast: setToast,
+    outcomeAccess: (id) => !!user && outcomes.includes(id),
+    redeemOutcome: (e) => {
+      if (!user) {
+        requireLogin({ type: "checkout", event: e });
+        return;
+      }
+      if (outcomeCredits > 0) {
+        setOutcomeCredits((p) => p - 1);
+        setOutcomes((p) => [...new Set([...p, e.id])]);
+        setToast("Исход открыт из демопакета");
+      } else requireLogin({ type: "plans" });
+    },
+    login: (phone, signup) => {
+      setUser({
+        name: "Левон Толстой",
+        phoneSuffix: phone.replace(/\D/g, "").slice(-4),
+        avatar: "avatar",
+      });
+      const fresh = !giftClaimed;
+      if (fresh) {
+        setGiftClaimed(true);
+        setCredits((p) => p + 2);
+      }
+      setModal({
+        type: "stories",
+        after: pending || (fresh ? { type: "gift" } : null),
+      });
+      setPending(null);
+      setToast("");
+    },
+    logout: () => {
+      setUser(null);
+      setModal(null);
+      setToast("Вы вышли. Покупки сохранены в браузере.");
+    },
+    updateName: (name) => setUser((p) => ({ ...p, name })),
+    changeAvatar: () =>
+      setUser((p) => ({
+        ...p,
+        avatar: p.avatar === "avatar" ? "news" : "avatar",
+      })),
+    addCard: () => {
+      setCards((p) => [
+        ...p,
+        {
+          id: "demo-" + Date.now(),
+          brand: "МИР",
+          last: String(1000 + Math.floor(Math.random() * 9000)),
+          primary: p.length === 0,
+        },
+      ]);
+      setToast("Добавлена вымышленная демокарта");
+    },
+    primaryCard: (id) =>
+      setCards((p) => p.map((c) => ({ ...c, primary: c.id === id }))),
+    deleteCard: (id) =>
+      setCards((p) => {
+        const rows = p.filter((c) => c.id !== id);
+        return rows.some((c) => c.primary)
+          ? rows
+          : rows.map((c, i) => ({ ...c, primary: i === 0 }));
+      }),
+    topup: (amount) => {
+      setBalance((p) => p + amount);
+      record("Демопополнение", amount);
+      setToast("Демобаланс пополнен. Списаний нет.");
+    },
+    buyPackage: (p) => {
+      if (p.tier === "outcome") setOutcomeCredits((n) => n + p.count);
+      else setCredits((n) => n + p.count);
+      record("Демопакет · " + p.count + " матчей", -p.price);
+      setToast("Демопакет доступен в профиле");
+    },
     access,
     favorites,
     now,
@@ -1056,7 +1234,7 @@ export default function AssistantApp() {
       );
       haptic();
     },
-    checkout: (e) => setModal({ type: "checkout", event: e }),
+    checkout: (e) => requireLogin({ type: "checkout", event: e }),
     stories: () => setModal({ type: "stories" }),
     info: (e) => setModal({ type: "info", event: e }),
     math: (e) => {
@@ -1068,7 +1246,7 @@ export default function AssistantApp() {
     chat: (e) => {
       if (access(e.id)) setModal({ type: "chat", event: e });
     },
-    subscribe: () => setModal({ type: "subscribe" }),
+    subscribe: () => requireLogin({ type: "subscribe" }),
     endSubscription: () => {
       setSubscription(null);
       setToast("Демоподписка завершена. Отдельные покупки сохранены.");
@@ -1079,6 +1257,12 @@ export default function AssistantApp() {
     : null;
   function unlock() {
     const e = modal.event;
+    if (!user) {
+      requireLogin({ type: "checkout", event: e });
+      return;
+    }
+    if (credits > 0) setCredits((p) => p - 1);
+    else record("Демоанализ · " + e.home, -PRICE);
     setPurchases((prev) => (prev.includes(e.id) ? prev : [...prev, e.id]));
     setJustUnlocked(e.id);
     setModal(null);
@@ -1094,24 +1278,55 @@ export default function AssistantApp() {
         </a>
         <header className="market-header">
           <div>
-            <Logo go={go} />
-            <Nav route={route} go={go} />
+            <DivergeLogo onClick={() => go("/")} />
+            <PdfNav route={route} go={go} />
             <button className="demo-badge" onClick={app.stories}>
               <span />
-              Демо-версия
+              Демо · 18+
               <CircleHelp size={13} />
+            </button>
+            <button
+              className="m-icon header-bell"
+              aria-label="Уведомления"
+              onClick={() => setModal({ type: "notifications" })}
+            >
+              <Bell size={17} />
+              <small>2</small>
+            </button>
+            <button
+              className="header-avatar"
+              aria-label="Открыть профиль"
+              onClick={() => go("/profile")}
+            >
+              <img src="./images/diverge/avatar.webp" alt="" />
+              {!user && <i />}
             </button>
           </div>
         </header>
         <main id="main-content" tabIndex={-1}>
-          <div data-route={route} key={route}>
+          <motion.div
+            data-route={route}
+            key={route}
+            initial={reduced ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: reduced ? 0 : 0.38,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          >
             {route === "/" || route === "/results" ? (
-              <Catalog
+              <PdfCatalog
                 app={app}
                 initialStatus={route === "/results" ? "past" : "all"}
               />
             ) : route === "/library" ? (
-              <Catalog app={app} library />
+              <PdfCatalog app={app} library />
+            ) : route === "/search" ? (
+              <PdfCatalog app={app} searchPage />
+            ) : route === "/profile" ? (
+              <Profile app={app} />
+            ) : route === "/chat" ? (
+              <GeneralChat app={app} />
             ) : route === "/subscription" ? (
               <Subscription app={app} />
             ) : current ? (
@@ -1124,11 +1339,11 @@ export default function AssistantApp() {
                 </button>
               </div>
             )}
-          </div>
+          </motion.div>
         </main>
         <footer className="market-footer">
           <span>
-            rakurs<span>AI</span>
+            DIVERGE<span>AI</span>
           </span>
           <p>
             Демо · 18+ · {SNAPSHOT_V6}
@@ -1140,7 +1355,7 @@ export default function AssistantApp() {
             <ArrowUpRight size={14} />
           </button>
         </footer>
-        <Nav route={route} go={go} bottom />
+        <PdfNav route={route} go={go} bottom />
       </div>
       <AnimatePresence>
         {toast && (
@@ -1158,7 +1373,14 @@ export default function AssistantApp() {
       </AnimatePresence>
       <AnimatePresence>
         {modal?.type === "stories" ? (
-          <Stories close={close} />
+          <PdfStories close={close} />
+        ) : modal?.type === "auth" ? (
+          <AuthScreen app={app} mode={modal.mode} close={close} />
+        ) : modal &&
+          !["info", "math", "factor", "chat", "checkout", "subscribe"].includes(
+            modal.type,
+          ) ? (
+          <ExtraModal key={modal.type} modal={modal} app={app} close={close} />
         ) : modal?.type === "info" ? (
           <EventInfo event={modal.event} close={close} />
         ) : modal?.type === "math" && modalHasAccess ? (
@@ -1172,55 +1394,14 @@ export default function AssistantApp() {
         ) : modal?.type === "chat" && modalHasAccess ? (
           <EventChat key={modal.event.id} event={modal.event} close={close} />
         ) : modal?.type === "checkout" ? (
-          <Modal title="Открыть прогноз" close={close}>
-            <div className="checkout-content">
-              <Identity event={modal.event} />
-              <div className="checkout-pick">
-                <span>Полный анализ события</span>
-                <h2>Увидеть то, что за цифрами.</h2>
-              </div>
-              <ul className="checkout-list">
-                <li>
-                  <Check size={16} />
-                  Вероятности и подробный дашборд
-                </li>
-                <li>
-                  <Check size={16} />
-                  Данные и расчёт каждого фактора
-                </li>
-                <li>
-                  <Check size={16} />
-                  Чат по этому событию
-                </li>
-              </ul>
-              <div className="checkout-total">
-                <span>Один прогноз</span>
-                <strong>{currency(PRICE)}</strong>
-              </div>
-              <div className="checkout-demo">
-                <ShieldCheck size={18} />
-                <p>
-                  <strong>Демопокупка</strong>
-                  <span>Деньги не спишутся. Карта не нужна.</span>
-                </p>
-              </div>
-              <button className="m-button confirm-purchase" onClick={unlock}>
-                Открыть без списания
-                <ArrowRight size={17} />
-              </button>
-              <button
-                className="text-button"
-                onClick={() => {
-                  setModal(null);
-                  go("/subscription");
-                }}
-              >
-                Или все события за 1 000 ₽ / месяц
-              </button>
-            </div>
-          </Modal>
+          <EventOrder
+            event={modal.event}
+            app={app}
+            close={close}
+            confirm={unlock}
+          />
         ) : modal?.type === "subscribe" ? (
-          <Modal title="Подписка Ракурс Plus" close={close}>
+          <Modal title="Подписка Diverge Plus" close={close}>
             <div className="checkout-content">
               <div className="checkout-pick">
                 <span>Один месяц · все события</span>
@@ -1240,6 +1421,7 @@ export default function AssistantApp() {
               <button
                 className="m-button confirm-subscription"
                 onClick={() => {
+                  record("Демоподписка на месяц", -MONTH_PRICE);
                   setSubscription(subscriptionMonth());
                   setNow(Date.now());
                   setModal(null);

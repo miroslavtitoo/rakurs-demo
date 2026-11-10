@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import {
+  motion,
+  AnimatePresence,
+  useReducedMotion,
+  useIsPresent,
+} from "motion/react";
 import { Sparkles, X, Pause, Play, ArrowLeft, ArrowRight } from "lucide-react";
 function useSaved(key, initial) {
   const [value, setValue] = useState(() => {
@@ -23,18 +28,25 @@ function useSaved(key, initial) {
   return [value, setValue];
 }
 
+let modalCount = 0;
+let savedOverflow = "";
 function Modal({ title, close, children, kind = "" }) {
+  const isPresent = useIsPresent();
+  const reduced = useReducedMotion();
+  const immersive = kind.includes("pdf-stories") || kind.includes("auth-modal");
   const panel = useRef(null);
   const closeRef = useRef(close);
   closeRef.current = close;
   useEffect(() => {
     const previous = document.activeElement;
     const shell = document.querySelector(".market-app");
-    const overflow = document.body.style.overflow;
+    if (modalCount === 0) savedOverflow = document.body.style.overflow;
+    modalCount += 1;
     shell.inert = true;
     document.body.style.overflow = "hidden";
     panel.current?.focus();
     const handle = (e) => {
+      if (panel.current?.inert) return;
       if (e.key === "Escape") closeRef.current();
       if (e.key !== "Tab") return;
       const nodes = [
@@ -67,17 +79,22 @@ function Modal({ title, close, children, kind = "" }) {
     document.addEventListener("keydown", handle);
     return () => {
       document.removeEventListener("keydown", handle);
-      shell.inert = false;
-      document.body.style.overflow = overflow;
-      if (previous?.isConnected) previous.focus();
+      modalCount -= 1;
+      if (modalCount === 0) {
+        shell.inert = false;
+        document.body.style.overflow = savedOverflow;
+        if (previous?.isConnected) previous.focus({ preventScroll: true });
+      }
     };
   }, []);
   return createPortal(
     <motion.div
       className="m-backdrop"
-      initial={{ opacity: 0 }}
+      style={{ pointerEvents: isPresent ? "auto" : "none" }}
+      initial={reduced ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: reduced ? 0 : 0.24 }}
       onClick={close}
     >
       <motion.section
@@ -86,9 +103,20 @@ function Modal({ title, close, children, kind = "" }) {
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
+        aria-hidden={!isPresent || undefined}
+        inert={!isPresent || undefined}
         aria-label={title}
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        initial={
+          reduced
+            ? false
+            : {
+                y: immersive ? 28 : 20,
+                scale: immersive ? 0.975 : 1,
+                opacity: 0,
+              }
+        }
+        animate={{ y: 0, scale: 1, opacity: 1 }}
+        transition={{ duration: reduced ? 0 : 0.38, ease: [0.22, 1, 0.36, 1] }}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="m-modal-head">

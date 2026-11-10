@@ -52,9 +52,10 @@ try {
     viewport: { width: 1440, height: 1000 },
     reducedMotion: "reduce",
   });
-  await page.addInitScript(() =>
-    localStorage.setItem("rakurs:assistantOnboardingSeen", "true"),
-  );
+  await page.addInitScript(() => {
+    localStorage.setItem('rakurs:pdfOnboardingSeen','true');
+    localStorage.setItem('rakurs:demoUser',JSON.stringify({name:'Демо'}));
+  });
   const errors = [],
     bad = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -63,7 +64,7 @@ try {
       bad.push(r.url());
   });
   await page.goto("http://127.0.0.1:5174/rakurs-demo/");
-  await expect(page.getByRole('heading',{name:'Лента событий',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Все матчи',exact:true})).toBeVisible();
   await page.evaluate(()=>document.fonts.ready);
   await page.waitForTimeout(500);
   await page.screenshot({path:'output/preview-desktop.png'});

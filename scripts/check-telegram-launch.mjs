@@ -31,7 +31,7 @@ try {
       reducedMotion: "reduce",
     });
     await context.addInitScript(() =>
-      localStorage.setItem("rakurs:assistantOnboardingSeen", "true"),
+      localStorage.setItem("rakurs:pdfOnboardingSeen", "true"),
     );
     const page = await context.newPage();
     page.on("pageerror", (error) => errors.push(error.message));
@@ -56,11 +56,11 @@ try {
     );
     await page
       .locator(".bottom-nav")
-      .getByRole("button", { name: "Мои прогнозы" })
+      .getByRole("button", { name: "Подписки" })
       .click();
     await expect(page.locator("main > [data-route]")).toHaveAttribute(
       "data-route",
-      "/library",
+      "/subscription",
     );
     await page.goBack();
     await expect(page.locator("main > [data-route]")).toHaveAttribute(
