@@ -1,3 +1,4 @@
+import { signInTelegram } from "./telegram-test-user.mjs";
 import { rewardDay } from "../src/rewards.js";
 import { chromium, expect } from "@playwright/test";
 import fs from "node:fs/promises";
@@ -25,6 +26,7 @@ async function create(
   await context.addInitScript(
     ({ seen, unsupported }) => {
       window.bridgeEvents = [];
+      if (seen === true) localStorage.setItem("rakurs:demoUser",JSON.stringify({name:"Алина",method:"telegram",telegramId:123456}));
       if (seen === true)
         localStorage.setItem(
           "rakurs:rewardsWallet",
@@ -151,9 +153,9 @@ try {
         localStorage.getItem("rakurs:pdfOnboardingSeen"),
       ),
     ).toBe("true");
-    await page
-      .getByRole("button", { name: /Смотреть без регистрации/ })
-      .click();
+    await expect(page.locator(".auth-modal")).toBeVisible();
+    await expect(page.getByRole("button",{name:"Закрыть",exact:true})).toHaveCount(0);
+    await signInTelegram(page);
     await page
       .getByRole("dialog")
       .getByRole("button", { name: "Закрыть", exact: true })
@@ -164,25 +166,13 @@ try {
       "data-route",
       "/",
     );
-    // Login and logout must not replay the already dismissed first-visit stories.
-    await page.goto(base + "#/match/fox-metro");
-    await page.getByRole("button", { name: /Купить прогноз/ }).click();
-    await page
-      .getByRole("button", { name: "Войти по номеру телефона", exact: true })
-      .click();
-    await page.getByLabel("Номер телефона").fill("123");
-    await page.getByRole("button", { name: "Войти", exact: true }).click();
-    await expect(page.getByRole("dialog")).toHaveAttribute(
-      "aria-label",
-      "Оформление заказа",
-    );
-    await expect(page.locator(".pdf-stories")).toHaveCount(0);
-    await page.getByRole("button", { name: "Закрыть", exact: true }).click();
+    // Logout keeps the entry gate; Telegram sign-in does not replay onboarding.
     await page.goto(base + "#/profile");
-    await page
-      .getByRole("button", { name: "Выйти из профиля", exact: true })
-      .click();
+    await page.getByRole("button", { name: "Выйти из профиля", exact: true }).click();
+    await expect(page.locator(".auth-modal")).toBeVisible();
     await page.goto(base + "#" + params);
+    await expect(page.locator(".auth-modal")).toBeVisible();
+    await signInTelegram(page);
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await page
       .getByRole("button", {
@@ -202,7 +192,7 @@ try {
   await corrupt.context.close();
   expect(errors).toEqual([]);
   console.log(
-    "PASS: actual Telegram SDK bridge fullscreen/swipe events, inset-aware fullscreen overlay at 390/320, first visit/reload/guest/login/logout, explicit replay, invalid marker and unsupported fallback.",
+    "PASS: actual Telegram SDK bridge fullscreen/swipe events, inset-aware fullscreen overlay at 390/320, first visit/reload/Telegram-only login/logout, explicit replay, invalid marker and unsupported fallback.",
   );
 } finally {
   await browser.close();

@@ -33,6 +33,7 @@ try {
     });
     await context.addInitScript((day) => {
       localStorage.setItem("rakurs:pdfOnboardingSeen", "true");
+      localStorage.setItem("rakurs:demoUser", JSON.stringify({name:"Алина",method:"telegram",telegramId:123456}));
       localStorage.setItem(
         "rakurs:rewardsWallet",
         JSON.stringify({ balance: 0, lastShownDay: day }),

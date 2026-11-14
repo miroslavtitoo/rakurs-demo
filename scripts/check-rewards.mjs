@@ -1,3 +1,4 @@
+import { signInTelegram } from "./telegram-test-user.mjs";
 import { chromium, expect } from "@playwright/test";
 import fs from "node:fs/promises";
 import { rewardDay, DAILY_REWARDS } from "../src/rewards.js";
@@ -59,11 +60,32 @@ try {
   await shot("onboarding");
   await finish();
   await expect(
-    page.getByRole("button", { name: "Продолжить с Telegram", exact: true }),
+    page.getByRole("button", { name: "Войти через Telegram", exact: true }),
   ).toBeVisible();
   await shot("telegram-entry");
   await clean();
-  await page.getByRole("button", { name: /Смотреть без регистрации/ }).click();
+  await expect(page.locator("main")).toHaveCount(0);
+  await expect(page.getByRole("button", {name:/без регистрации|по номеру/})).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".auth-modal")).toBeVisible();
+  await page.goto(base + "#/search");
+  await page.reload();
+  await expect(page.locator(".pdf-stories")).toHaveCount(0);
+  await expect(page.locator("main")).toHaveCount(0);
+  for (const [width,height] of [[320,568],[390,844],[430,932],[768,1024],[1440,1000]]) {
+    await page.setViewportSize({width,height});
+    await expect(page.getByRole("button",{name:"Войти через Telegram",exact:true})).toBeInViewport();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+    await shot(`entry-${width}`);
+  }
+  await page.setViewportSize({width:390,height:844});
+  await page.evaluate(()=>{window.open=(url)=>{window.testTelegramLink=url;return null;};});
+  await page.getByRole("button",{name:"Войти через Telegram",exact:true}).click();
+  await expect(page.getByRole("status")).toContainText("Откройте Diverge в Telegram");
+  expect(await page.evaluate(()=>window.testTelegramLink)).toBe("https://t.me/demobett_bot");
+  await expect(page.locator("main")).toHaveCount(0);
+  await page.goto(base);
+  await signInTelegram(page);
   await expect(page.locator(".reward-sheet")).toBeVisible();
   await shot("daily-first");
   await expect(page.locator(".reward-day")).toHaveCount(7);
@@ -128,21 +150,22 @@ try {
   await route("/profile");
   await expect(page.locator(".profile-coin-card")).toContainText("130");
   await shot("profile-coins");
+  await page.getByRole("button",{name:"Поделиться номером",exact:true}).click();
+  await expect(page.locator(".telegram-contact-hint")).toContainText("актуальной версии Telegram");
+  await page.evaluate(()=>{
+    window.Telegram.WebApp.isVersionAtLeast=()=>true;
+    window.Telegram.WebApp.requestContact=(cb)=>cb(false);
+  });
+  await page.getByRole("button",{name:"Поделиться номером",exact:true}).click();
+  await expect(page.locator(".telegram-contact-hint")).toContainText("Номер не передан");
+  await page.evaluate(()=>{window.Telegram.WebApp.requestContact=(cb)=>cb(true);});
+  await page.getByRole("button",{name:"Поделиться номером",exact:true}).click();
+  await expect(page.getByRole("button",{name:"Номер передан через Telegram",exact:true})).toBeDisabled();
+  await page.reload();
+  await expect(page.getByRole("button",{name:"Номер передан через Telegram",exact:true})).toBeDisabled();
+  await shot("telegram-profile");
   await route("/match/fox-metro");
   await page.getByRole("button", { name: /Купить прогноз/ }).click();
-  await expect(
-    page.getByRole("button", { name: "Продолжить с Telegram", exact: true }),
-  ).toBeVisible();
-  await page.evaluate(() => {
-    window.Telegram.WebApp.initDataUnsafe.user = {
-      id: 123456,
-      first_name: "Алина",
-      last_name: "Ветрова",
-    };
-  });
-  await page
-    .getByRole("button", { name: "Продолжить с Telegram", exact: true })
-    .click();
   await expect(page.getByRole("dialog")).toHaveAttribute(
     "aria-label",
     "Оформление заказа",
@@ -310,11 +333,28 @@ try {
   await page
     .getByRole("button", { name: "Выйти из профиля", exact: true })
     .click();
-  await route("/match/fox-metro");
+  await page.goto(base + "#/match/fox-metro");
   await expect(page.locator(".analysis-dashboard")).toHaveCount(0);
+  await expect(page.locator(".auth-modal")).toBeVisible();
+  await expect(page.locator("main")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await page.reload();
+  await expect(page.locator(".pdf-stories")).toHaveCount(0);
+  await expect(page.locator(".auth-modal")).toBeVisible();
+  await signInTelegram(page);
+  await expect(page.locator(".analysis-dashboard")).toBeVisible();
+  // Old phone sessions cannot bypass Telegram; paid access is preserved on this device.
+  await page.evaluate(()=>{
+    localStorage.setItem("rakurs:demoUser",JSON.stringify({name:"Участник",phoneSuffix:"1234"}));
+  });
+  await page.reload();
+  await expect(page.locator(".auth-modal")).toBeVisible();
+  await expect(page.locator("main")).toHaveCount(0);
+  await signInTelegram(page);
+  await expect(page.locator(".analysis-dashboard")).toBeVisible();
   expect(errors).toEqual([]);
   console.log(
-    "PASS: mandatory onboarding, primary Telegram login, daily popup/claims/week=130, coin purchase, 30% bundle coupon, news read states/replay, no retired labels, subscription/chat/factors, persistence and 35 responsive routes.",
+    "PASS: mandatory onboarding, Telegram-only gate/contact consent/legacy migration, daily popup/claims/week=130, coin purchase, 30% bundle coupon, news read states/replay, no retired labels, subscription/chat/factors, logout/deep-link gate and persistence and 35 responsive routes.",
   );
 } finally {
   await browser.close();

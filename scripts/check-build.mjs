@@ -57,7 +57,7 @@ try {
     localStorage.setItem("rakurs:pdfOnboardingSeen", "true");
     localStorage.setItem(
       "rakurs:demoUser",
-      JSON.stringify({ name: "Пользователь" }),
+      JSON.stringify({ name: "Алина", method: "telegram", telegramId: 123456 }),
     );
     localStorage.setItem(
       "rakurs:rewardsWallet",

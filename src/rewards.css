@@ -924,3 +924,37 @@
   border-radius: 4px;
   background: #49404f;
 }
+
+/* Telegram is the sole entry point. Keep a stable, compact footer at short heights. */
+.telegram-only-entry .telegram-entry-note {
+  margin: 16px 0 0;
+  color: #c5bbd5;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+}
+.telegram-only-entry .telegram-entry-hint {
+  margin: 12px 0 0;
+  color: #f1ddff;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+.telegram-account-card {
+  margin: 0 0 22px;
+  padding: 20px;
+  border: 1px solid #b55bf230;
+  border-radius: 20px;
+  background: #151125;
+}
+.telegram-account-heading { display:flex; align-items:center; gap:10px; color:#d4a3ff; }
+.telegram-account-heading strong { flex:1; font-size:15px; color:#fff; }
+.telegram-account-card > p { margin:12px 0 16px; color:#aaa0bc; font-size:13px; line-height:1.55; }
+.telegram-contact-button { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:48px; width:100%; border-radius:13px; padding:12px 14px; background:#30203e; color:#e3c0ff; font-size:13px; text-align:left; }
+.telegram-contact-button:disabled { cursor:default; opacity:.7; }
+.telegram-account-card > .telegram-contact-hint { margin-bottom:0; color:#d5b7e7; }
+.settings-initials { width:72px; height:72px; margin-bottom:18px; font-size:28px; }
+.telegram-settings-identity { display:flex; align-items:center; gap:9px; margin:18px 0 22px; color:#9e63cb; font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
+@media(max-height:640px) {
+  .telegram-only-entry .telegram-entry-note { margin-top:10px; font-size:11px; }
+}

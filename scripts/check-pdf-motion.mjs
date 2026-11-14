@@ -1,3 +1,4 @@
+import { signInTelegram } from "./telegram-test-user.mjs";
 import { chromium, expect } from "@playwright/test";
 const browser = await chromium.launch({ channel: "msedge" }),
   page = await browser.newPage({ viewport: { width: 390, height: 844 } });
@@ -22,7 +23,7 @@ try {
   ).toHaveCount(0);
   for (let i = 0; i < 3; i++)
     await page.getByRole("button", { name: "Далее", exact: true }).click();
-  await page.getByRole("button", { name: /Смотреть без регистрации/ }).click();
+  await signInTelegram(page);
   await page.getByRole("button", { name: "Закрыть", exact: true }).click();
   await page.goto(base + "#/match/fox-metro");
   const orb = page.locator(".ai-orb-sphere").first(),

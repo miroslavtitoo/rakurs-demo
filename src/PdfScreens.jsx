@@ -35,14 +35,15 @@ import { REWARD_COST } from "./rewards.js";
 import { assistantText, operationLabel } from "./presentation.js";
 const img = (n) => `./images/diverge/${n}.webp`;
 export function DivergeLogo({ onClick }) {
+  const Tag = onClick ? "button" : "span";
   return (
-    <button
+    <Tag
       className="diverge-logo"
       onClick={onClick}
-      aria-label="Diverge — главная"
+      aria-label={onClick ? "Diverge — главная" : undefined}
     >
       <img src="./images/diverge/logo.svg" alt="DIVERGE" />
-    </button>
+    </Tag>
   );
 }
 const slides = [
@@ -198,102 +199,27 @@ export function PdfStories({ close }) {
     </Modal>
   );
 }
-export function AuthScreen({ mode = "welcome", app, close }) {
-  const [view, V] = useState(mode),
-    [phone, N] = useState(""),
-    [error, E] = useState("");
-  const submit = (e) => {
-    e.preventDefault();
-    if (!phone.replace(/\D/g, "")) {
-      E("Введите любой номер для входа");
-      return;
-    }
-    app.login(phone, view === "signup");
-  };
+export function AuthScreen({ app }) {
   return (
-    <Modal title="Вход в Diverge" close={close} kind="auth-modal dark-modal">
-      <div className="auth-screen">
-        <DivergeLogo onClick={() => V("welcome")} />
-        {view === "welcome" ? (
-          <>
-            <div className="auth-intro">
-              <img
-                className="huge-symbol"
-                src="./images/diverge/mark.svg"
-                alt=""
-              />
-              <h1 className="diverge-word">DIVERGE</h1>
-              <p>
-                ИИ-помощник для анализа матчей,
-                <br />
-                статистики игроков и интеллектуальных
-                <br />
-                сравнений — всё в одном месте.
-              </p>
-            </div>
-            <div className="auth-bottom">
-              <button
-                className="m-button telegram-login"
-                onClick={app.loginTelegram}
-              >
-                <Send size={19} />
-                Продолжить с Telegram
-              </button>
-              <button className="text-button" onClick={() => V("login")}>
-                Войти по номеру телефона
-              </button>
-
-              <button className="guest-button" onClick={close}>
-                Смотреть без регистрации <ArrowRight size={15} />
-              </button>
-            </div>
-          </>
-        ) : (
-          <form onSubmit={submit} className="auth-form">
-            <h1>
-              {view === "signup" ? "Создать\nаккаунт" : "Вход\nв аккаунт"}
-            </h1>
-            <label className="sr-only" htmlFor="demo-phone">
-              Номер телефона
-            </label>
-            <input
-              id="demo-phone"
-              type="tel"
-              inputMode="tel"
-              autoComplete="off"
-              placeholder="Номер телефона"
-              value={phone}
-              onChange={(e) => {
-                N(e.target.value);
-                E("");
-              }}
-            />
-            <button
-              type="button"
-              className="telegram-alternative"
-              onClick={app.loginTelegram}
-            >
-              <Send size={16} />
-              Войти через Telegram
-            </button>
-            {error && <p role="alert">{error}</p>}
-            <button className="m-button" type="submit">
-              {view === "signup" ? "Зарегистрироваться" : "Войти"}
-            </button>
-            <p>
-              {view === "signup" ? "Есть аккаунт?" : "Нет аккаунта?"}{" "}
-              <button
-                type="button"
-                onClick={() => V(view === "signup" ? "login" : "signup")}
-              >
-                {view === "signup" ? "Войти" : "Зарегистрироваться"}
-              </button>
-            </p>
-            <button type="button" className="guest-button" onClick={close}>
-              Смотреть без регистрации
-            </button>
-          </form>
-        )}
+    <Modal title="Вход в Diverge" close={() => {}} dismissible={false} kind="auth-modal dark-modal">
+      <div className="auth-screen telegram-only-entry">
+        <DivergeLogo />
+        <div className="auth-intro">
+          <img className="huge-symbol" src="./images/diverge/mark.svg" alt="" />
+          <h1 className="diverge-word">DIVERGE</h1>
+          <p>
+            ИИ-помощник для анализа матчей,<br />
+            статистики игроков и интеллектуальных<br />
+            сравнений — всё в одном месте.
+          </p>
+        </div>
+        <div className="auth-bottom">
+          <button className="m-button telegram-login" onClick={app.loginTelegram}>
+            <Send size={19} />Войти через Telegram
+          </button>
+          <p className="telegram-entry-note">Ваш Telegram — ваш аккаунт.<br />Без паролей и SMS.</p>
+          {app.authHint && <p className="telegram-entry-hint" role="status">{app.authHint}</p>}
+        </div>
         <small className="auth-demo">18+</small>
       </div>
     </Modal>
@@ -745,8 +671,8 @@ export function Profile({ app }) {
             )}
           </button>
           <span>
-            ID {app.user?.telegramId || 324324}
-            <small>{app.user ? app.user.name : "Гостевой режим"}</small>
+            ID {app.user.telegramId}
+            <small>{app.user.name}</small>
           </span>
           <button
             className="m-icon"
@@ -799,6 +725,15 @@ export function Profile({ app }) {
           Ежедневная награда <ChevronRight size={17} />
         </span>
       </button>
+      <section className="telegram-account-card">
+        <div className="telegram-account-heading"><Send size={20} /><strong>Аккаунт Telegram</strong><Check size={17} /></div>
+        <p>Номер телефона можно передать через Telegram. Это необязательно для входа.</p>
+        <button className="telegram-contact-button" disabled={app.contactPending || app.user.contactShared} onClick={app.shareContact}>
+          {app.contactPending ? "Ожидаем ответ Telegram…" : app.user.contactShared ? "Номер передан через Telegram" : "Поделиться номером"}
+          {app.user.contactShared ? <Check size={17} /> : <ChevronRight size={17} />}
+        </button>
+        {app.contactHint && <p className="telegram-contact-hint" role="status">{app.contactHint}</p>}
+      </section>
       <div className="pdf-chips profile-tabs">
         {["Матчи", "Статистика", "История платежей"].map((t) => (
           <button key={t} aria-pressed={t === tab} onClick={() => T(t)}>
@@ -866,19 +801,9 @@ export function Profile({ app }) {
             <ChevronRight size={17} />
           </button>
         ))}
-        {app.user ? (
-          <button className="profile-row" onClick={app.logout}>
-            <LogOut size={19} />
-            Выйти из профиля
-          </button>
-        ) : (
-          <button
-            className="m-button"
-            onClick={() => app.require({ type: "edit" })}
-          >
-            Войти по номеру телефона
-          </button>
-        )}
+        <button className="profile-row" onClick={app.logout}>
+          <LogOut size={19} />Выйти из профиля
+        </button>
       </section>
     </div>
   );
@@ -980,11 +905,10 @@ const packages = [
 ];
 export function ExtraModal({ modal, app, close }) {
   const type = modal.type;
-  const [name, N] = useState(app.user?.name || "Левон Толстой"),
+  const [name, N] = useState(app.user?.name || "Участник"),
     [amount, A] = useState(2259),
     [selected, S] = useState(0),
     [tier, T] = useState("outcome"),
-    [verify, V] = useState(false),
     [card, C] = useState(null);
   const white = ["topup", "order", "edit", "paymentCard", "search"].includes(
     type,
@@ -1002,7 +926,6 @@ export function ExtraModal({ modal, app, close }) {
     faq: "Вопросы и ответы",
     support: "Служба поддержки",
     language: "Выбор языка",
-    verification: "Верификация",
     news: "Новости Diverge",
     chatIntro: "Diverge AI",
   };
@@ -1264,21 +1187,9 @@ export function ExtraModal({ modal, app, close }) {
           </>
         ) : type === "settings" ? (
           <>
-            <img
-              className="settings-avatar"
-              src={img(app.user?.avatar || "avatar")}
-              alt="Аватар"
-            />
-            <h1 className="settings-name">{app.user?.name || "Гость"}</h1>
-            <div className="verify-banner">
-              <h2>Пройдите верификацию</h2>
-              <p>
-                Подтвердите профиль, чтобы открыть дополнительные возможности
-              </p>
-              <button onClick={() => app.open({ type: "verification" })}>
-                Начать
-              </button>
-            </div>
+            <span className="profile-initials settings-initials">{app.user.name.slice(0, 1)}</span>
+            <h1 className="settings-name">{app.user.name}</h1>
+            <div className="telegram-settings-identity"><Send size={18} /> Вход через Telegram · ID {app.user.telegramId}</div>
             <button
               className="profile-row"
               onClick={() => app.require({ type: "edit" })}
@@ -1306,18 +1217,7 @@ export function ExtraModal({ modal, app, close }) {
               close();
             }}
           >
-            <img
-              className="settings-avatar"
-              src={img(app.user?.avatar || "avatar")}
-              alt="Аватар"
-            />
-            <button
-              type="button"
-              className="text-button"
-              onClick={app.changeAvatar}
-            >
-              Изменить фото
-            </button>
+            <span className="profile-initials settings-initials">{app.user.name.slice(0, 1)}</span>
             <label className="field-title" htmlFor="profile-name">
               Имя
             </label>
@@ -1329,22 +1229,11 @@ export function ExtraModal({ modal, app, close }) {
               onChange={(e) => N(e.target.value)}
             />
             <p className="field-title">ID аккаунта</p>
-            <h2 className="account-id">{app.user?.telegramId || 324324}</h2>
+            <h2 className="account-id">{app.user.telegramId}</h2>
             <button className="m-button" type="submit">
               Сохранить
             </button>
           </form>
-        ) : type === "verification" ? (
-          <>
-            <h1>{verify ? "Профиль\nподтверждён" : "Верификация\nпрофиля"}</h1>
-            <p>Проверка профиля помогает сохранить доступ к аккаунту.</p>
-            <button
-              className="m-button"
-              onClick={() => (verify ? close() : V(true))}
-            >
-              {verify ? "Готово" : "Пройти проверку"}
-            </button>
-          </>
         ) : type === "notifications" ? (
           <>
             <h1>Уведомления</h1>
@@ -1456,7 +1345,7 @@ export function ExtraModal({ modal, app, close }) {
               ],
               [
                 "Нужно ли регистрироваться?",
-                "Каталог доступен гостям. Для прогноза и покупки нужен вход в аккаунт.",
+                "Вход выполняется через Telegram. Пароль и SMS не нужны.",
               ],
               [
                 "Сколько стоит анализ?",

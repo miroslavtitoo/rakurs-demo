@@ -1,3 +1,4 @@
+import { signInTelegram } from "./telegram-test-user.mjs";
 import { chromium, expect } from "@playwright/test";
 import fs from "node:fs/promises";
 const base = process.env.DEMO_URL || "http://localhost:5173/";
@@ -84,7 +85,7 @@ try {
   const intro = await page.locator(".auth-intro").boundingBox();
   expect(intro.y + intro.height / 2).toBeGreaterThan(330);
   expect(intro.y + intro.height / 2).toBeLessThan(440);
-  await page.getByRole("button", { name: /Смотреть без регистрации/ }).click();
+  await signInTelegram(page);
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Закрыть", exact: true })
@@ -134,7 +135,7 @@ try {
   await page.evaluate(() => {
     localStorage.setItem(
       "rakurs:demoUser",
-      JSON.stringify({ name: "Демо", avatar: "avatar" }),
+      JSON.stringify({ name: "Алина", method: "telegram", telegramId: 123456 }),
     );
     localStorage.setItem("rakurs:aiPurchases", '["fox-metro"]');
   });
@@ -214,9 +215,7 @@ try {
   await expect(touchPage.locator(".story-sport-card")).toHaveCount(3);
   for (let i = 0; i < 4; i++)
     await touchPage.getByRole("button", { name: "Далее", exact: true }).tap();
-  await touchPage
-    .getByRole("button", { name: /Смотреть без регистрации/ })
-    .tap();
+  await signInTelegram(touchPage);
   await touchPage
     .getByRole("dialog")
     .getByRole("button", { name: "Закрыть", exact: true })

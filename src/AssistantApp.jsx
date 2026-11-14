@@ -70,6 +70,7 @@ import "./pdfDesign.css";
 import "./mobilePolish.css";
 import "./rewards.css";
 import { assistantText } from "./presentation.js";
+import { isTelegramAccount, telegramAccount, requestTelegramContact } from "./telegramAuth.js";
 import {
   CoinButton,
   RewardSheet,
@@ -1073,7 +1074,12 @@ export default function AssistantApp() {
   const [favorites, setFavorites] = useSaved("favorites", []);
   const [subscription, setSubscription] = useSaved("aiSubscription", null);
   const [seen, setSeen] = useSaved("pdfOnboardingSeen", false);
-  const [user, setUser] = useSaved("demoUser", null);
+  const [savedUser, setUser] = useSaved("demoUser", null);
+  const user = isTelegramAccount(savedUser) ? savedUser : null;
+  const [authHint, setAuthHint] = useState("");
+  const [contactPending, setContactPending] = useState(false);
+  const [contactHint, setContactHint] = useState("");
+  const contactBusy = useRef(false);
   const [savedWallet, setWallet] = useSaved("rewardsWallet", emptyWallet);
   const [readNews, setReadNews] = useSaved("readNews", []);
   const wallet = normalizeWallet(savedWallet);
@@ -1089,7 +1095,7 @@ export default function AssistantApp() {
   ]);
   const [pending, setPending] = useState(null);
   const [modal, setModal] = useState(() =>
-    seen === true ? null : { type: "stories" },
+    seen === true ? (user ? null : { type: "auth" }) : { type: "stories" },
   );
   const [toast, setToast] = useState("");
   const [justUnlocked, setJustUnlocked] = useState(null);
@@ -1109,11 +1115,11 @@ export default function AssistantApp() {
     };
   }, []);
   useEffect(() => {
-    if (seen !== true || modal || !rewardStatus(savedWallet, now).shouldShow)
+    if (!user || seen !== true || modal || !rewardStatus(savedWallet, now).shouldShow)
       return;
     setWallet((p) => ({ ...normalizeWallet(p), lastShownDay: rewardDay(now) }));
     setModal({ type: "rewards" });
-  }, [seen, modal, now, savedWallet.lastShownDay]);
+  }, [user, seen, modal, now, savedWallet.lastShownDay]);
   useEffect(() => {
     const changed = () => setRoute(marketRoute(routeFromHash(location.hash)));
     window.addEventListener("hashchange", changed);
@@ -1146,22 +1152,22 @@ export default function AssistantApp() {
       setModal(!user && seen !== true ? { type: "auth" } : null);
       return;
     }
-    if (modal?.type === "auth") setPending(null);
+    if (modal?.type === "auth" && !user) return;
     setModal(null);
   }
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (!isTelegramWebApp(tg) || !tg.isVersionAtLeast?.("6.1")) return;
     const back = () => {
-      if (modal?.type === "stories") return;
+      if (!user || modal?.type === "stories") return;
       modal ? close() : go("/");
     };
-    if (modal?.type === "stories") tg.BackButton.hide();
+    if (!user || modal?.type === "stories") tg.BackButton.hide();
     else if (route !== "/" || modal) tg.BackButton.show();
     else tg.BackButton.hide();
     tg.BackButton.onClick(back);
     return () => tg.BackButton.offClick(back);
-  }, [route, modal]);
+  }, [route, modal, user]);
   const access = (id) =>
     !!user && canAccess(id, purchases, subscription, now, legacy);
   const requireLogin = (next) => {
@@ -1176,6 +1182,9 @@ export default function AssistantApp() {
   const app = {
     go,
     user,
+    authHint,
+    contactPending,
+    contactHint,
     credits,
     outcomeCredits,
     balance,
@@ -1225,25 +1234,36 @@ export default function AssistantApp() {
       setModal({ type: "newsStory", index });
     },
     loginTelegram: () => {
-      const peer = window.Telegram?.WebApp?.initDataUnsafe?.user;
-      if (!peer?.id) {
+      const account = telegramAccount(window.Telegram?.WebApp);
+      if (!account) {
+        setAuthHint("Откройте Diverge в Telegram и нажмите кнопку входа.");
         const link = "https://t.me/demobett_bot";
         if (isTelegramWebApp()) window.Telegram.WebApp.openTelegramLink(link);
         else window.open(link, "_blank", "noopener,noreferrer");
         return;
       }
-      setUser({
-        name:
-          [peer.first_name, peer.last_name].filter(Boolean).join(" ") ||
-          peer.username ||
-          "Участник",
-        telegramId: peer.id,
-        method: "telegram",
-        avatar: "avatar",
-      });
+      setUser(account);
+      setAuthHint("");
       setModal(pending);
       setPending(null);
-      setToast("Вы вошли через Telegram");
+      setToast("Добро пожаловать, " + account.name.split(" ")[0]);
+    },
+    shareContact: () => {
+      if (!user || user.contactShared || contactBusy.current) return;
+      contactBusy.current = true;
+      setContactPending(true);
+      setContactHint("");
+      const accountId = user.telegramId;
+      requestTelegramContact(window.Telegram?.WebApp, (result) => {
+        contactBusy.current = false;
+        setContactPending(false);
+        if (result === "shared") {
+          setUser((p) => p?.telegramId === accountId ? { ...p, contactShared: true } : p);
+          setContactHint("Вы разрешили Telegram передать номер. Спасибо!");
+        } else if (result === "declined") setContactHint("Номер не передан. Вы можете продолжить пользоваться приложением.");
+        else if (result === "unsupported") setContactHint("Откройте приложение в актуальной версии Telegram, чтобы поделиться номером.");
+        else setContactHint("Не удалось открыть окно Telegram. Попробуйте ещё раз.");
+      });
     },
     require: requireLogin,
     toast: setToast,
@@ -1259,27 +1279,15 @@ export default function AssistantApp() {
         setToast("Исход открыт из пакета");
       } else requireLogin({ type: "plans" });
     },
-    login: (phone, signup) => {
-      setUser({
-        name: user?.name || "Участник",
-        phoneSuffix: phone.replace(/\D/g, "").slice(-4),
-        avatar: "avatar",
-      });
-      setModal(pending);
-      setPending(null);
-      setToast("");
-    },
     logout: () => {
       setUser(null);
-      setModal(null);
+      setAuthHint("");
+      setContactHint("");
+      setPending(null);
+      setModal({ type: "auth" });
       setToast("Вы вышли. Покупки сохранены в браузере.");
     },
-    updateName: (name) => setUser((p) => ({ ...p, name })),
-    changeAvatar: () =>
-      setUser((p) => ({
-        ...p,
-        avatar: p.avatar === "avatar" ? "news" : "avatar",
-      })),
+    updateName: (name) => setUser((p) => ({ ...p, name: name.trim() || p.name })),
     addCard: () => {
       setCards((p) => [
         ...p,
@@ -1371,6 +1379,7 @@ export default function AssistantApp() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="market-app assistant-app">
+        {user && <>
         <a className="skip-link" href="#main-content">
           К содержимому
         </a>
@@ -1444,6 +1453,7 @@ export default function AssistantApp() {
           </p>
         </footer>
         <PdfNav route={route} go={go} bottom />
+        </>}
       </div>
       <AnimatePresence>
         {toast && (
@@ -1462,6 +1472,8 @@ export default function AssistantApp() {
       <AnimatePresence>
         {modal?.type === "stories" ? (
           <PdfStories close={close} />
+        ) : !user ? (
+          <AuthScreen key="telegram-auth" app={app} />
         ) : modal?.type === "rewards" || modal?.type === "coinShop" ? (
           <RewardSheet
             key={modal.type}
@@ -1472,7 +1484,7 @@ export default function AssistantApp() {
         ) : modal?.type === "newsStory" ? (
           <NewsStories app={app} index={modal.index} close={close} />
         ) : modal?.type === "auth" ? (
-          <AuthScreen app={app} mode={modal.mode} close={close} />
+          <AuthScreen app={app} />
         ) : modal &&
           !["info", "math", "factor", "chat", "checkout", "subscribe"].includes(
             modal.type,
