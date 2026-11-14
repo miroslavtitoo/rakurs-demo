@@ -30,6 +30,9 @@ import { fixtures, SPORTS } from "./assistantData.js";
 import TeamMark from "./TeamMark.jsx";
 import StoryArt from "./StoryArt.jsx";
 import EventSlider from "./EventSlider.jsx";
+import { StoryRail, CoinButton } from "./RewardsUI.jsx";
+import { REWARD_COST } from "./rewards.js";
+import { assistantText, operationLabel } from "./presentation.js";
 const img = (n) => `./images/diverge/${n}.webp`;
 export function DivergeLogo({ onClick }) {
   return (
@@ -57,14 +60,15 @@ const slides = [
   ],
   [
     "Обсудите\nматч с AI",
-    "Задайте вопрос или добавьте свою гипотезу. Разберите аргументы вместе с AI. В демо ответы подготовлены заранее.",
+    "Задайте вопрос или добавьте свою гипотезу. Разберите аргументы вместе с AI. ",
   ],
 ];
 export function PdfStories({ close }) {
   const [step, S] = useState(0),
     [pause, P] = useState(false),
     [held, H] = useState(false),
-    [progress, Q] = useState(0);
+    [progress, Q] = useState(0),
+    [maxVisited, MV] = useState(0);
   const reduced = useReducedMotion(),
     touch = useRef(null),
     elapsed = useRef(0);
@@ -75,6 +79,7 @@ export function PdfStories({ close }) {
   useEffect(() => {
     elapsed.current = 0;
     Q(0);
+    MV((n) => Math.max(n, step));
   }, [step]);
   useEffect(() => {
     if (reduced || pause || held || step === 3) return;
@@ -110,6 +115,7 @@ export function PdfStories({ close }) {
       title="Знакомство с Diverge"
       close={close}
       kind="pdf-stories dark-modal"
+      dismissible={false}
     >
       <div
         className="pdf-story animated-story"
@@ -155,6 +161,7 @@ export function PdfStories({ close }) {
               aria-label={`Сторис ${i + 1} из 4`}
               aria-current={i === step ? "step" : undefined}
               onClick={() => S(i)}
+              disabled={i > maxVisited}
             >
               <i
                 style={{
@@ -186,13 +193,7 @@ export function PdfStories({ close }) {
           <button className="m-button" onClick={() => change(1)}>
             Далее <ArrowRight size={17} />
           </button>
-          <button className="text-button" onClick={close}>
-            Пропустить
-          </button>
         </motion.div>
-        <small className="story-demo-note">
-          Демо · прогнозы, AI и платежи вымышлены · 18+
-        </small>
       </div>
     </Modal>
   );
@@ -204,7 +205,7 @@ export function AuthScreen({ mode = "welcome", app, close }) {
   const submit = (e) => {
     e.preventDefault();
     if (!phone.replace(/\D/g, "")) {
-      E("Введите любой номер для демовхода");
+      E("Введите любой номер для входа");
       return;
     }
     app.login(phone, view === "signup");
@@ -231,12 +232,17 @@ export function AuthScreen({ mode = "welcome", app, close }) {
               </p>
             </div>
             <div className="auth-bottom">
-              <button className="m-button" onClick={() => V("login")}>
+              <button
+                className="m-button telegram-login"
+                onClick={app.loginTelegram}
+              >
+                <Send size={19} />
+                Продолжить с Telegram
+              </button>
+              <button className="text-button" onClick={() => V("login")}>
                 Войти по номеру телефона
               </button>
-              <button className="text-button" onClick={() => V("signup")}>
-                Создать аккаунт
-              </button>
+
               <button className="guest-button" onClick={close}>
                 Смотреть без регистрации <ArrowRight size={15} />
               </button>
@@ -262,10 +268,14 @@ export function AuthScreen({ mode = "welcome", app, close }) {
                 E("");
               }}
             />
-            <p className="auth-hint">
-              Бета-тест: введите любой номер. Без SMS и настоящей регистрации.
-              Номер не отправляется на сервер.
-            </p>
+            <button
+              type="button"
+              className="telegram-alternative"
+              onClick={app.loginTelegram}
+            >
+              <Send size={16} />
+              Войти через Telegram
+            </button>
             {error && <p role="alert">{error}</p>}
             <button className="m-button" type="submit">
               {view === "signup" ? "Зарегистрироваться" : "Войти"}
@@ -284,7 +294,7 @@ export function AuthScreen({ mode = "welcome", app, close }) {
             </button>
           </form>
         )}
-        <small className="auth-demo">Демо · только локальный вход · 18+</small>
+        <small className="auth-demo">18+</small>
       </div>
     </Modal>
   );
@@ -319,11 +329,13 @@ export function PdfNav({ route, go, bottom = false }) {
 }
 export function PdfEventCard({ event: e, app }) {
   const access = app.access(e.id);
+  const reduced = useReducedMotion();
   return (
     <motion.article
       className="pdf-event event-card"
-      initial={{ opacity: 0, y: 12 }}
+      initial={reduced ? false : { opacity: 0, y: 12 }}
       whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: reduced ? 0 : 0.3 }}
       viewport={{ once: true }}
     >
       <div className="pdf-event-top">
@@ -342,7 +354,7 @@ export function PdfEventCard({ event: e, app }) {
         </button>
         <b>
           {e.status === "live"
-            ? "LIVE · ДЕМО"
+            ? "LIVE "
             : e.status === "past"
               ? "ЗАВЕРШЁН"
               : "PRE-MATCH"}
@@ -384,7 +396,7 @@ export function PdfEventCard({ event: e, app }) {
             : "AI-анализ"}
           <small>
             {access || app.outcomeAccess(e.id)
-              ? `${(100 / e.probabilities[0]).toFixed(2)} кф. · демо`
+              ? `${(100 / e.probabilities[0]).toFixed(2)} кф. `
               : e.sport}
           </small>
         </span>
@@ -460,24 +472,7 @@ export function PdfCatalog({
   );
   return (
     <>
-      {!library && !searchPage && (
-        <div className="pdf-news-rail">
-          {[
-            ["news", "Новости"],
-            ["finance", "Личные финансы"],
-            ["bonus", "Акции и бонусы"],
-            ["life", "Ритм спорта"],
-          ].map(([n, l], i) => (
-            <button
-              key={n}
-              onClick={() => app.open({ type: "news", index: i })}
-            >
-              <img src={img(n)} alt="" />
-              <span>{l}</span>
-            </button>
-          ))}
-        </div>
-      )}
+      {!library && !searchPage && <StoryRail app={app} />}
       {library && (
         <div className="page-heading">
           <h1>Мои прогнозы</h1>
@@ -605,11 +600,7 @@ export function PdfCatalog({
           </button>
         </div>
       )}
-      <p className="pdf-data-note">
-        Демо · вымышленные матчи · снимок 8 октября 2026
-        <br />
-        Вероятности доступны после входа и открытия прогноза.
-      </p>
+
       {sheet && (
         <FilterSheet
           kind={sheet}
@@ -742,13 +733,19 @@ export function Profile({ app }) {
             className="profile-avatar"
             onClick={() => app.require({ type: "edit" })}
           >
-            <img
-              src={img(app.user?.avatar || "avatar")}
-              alt="Аватар демопрофиля"
-            />
+            {app.user?.method === "telegram" ? (
+              <span className="profile-initials">
+                {app.user.name.slice(0, 1)}
+              </span>
+            ) : (
+              <img
+                src={img(app.user?.avatar || "avatar")}
+                alt="Аватар профиля"
+              />
+            )}
           </button>
           <span>
-            ID 324324
+            ID {app.user?.telegramId || 324324}
             <small>{app.user ? app.user.name : "Гостевой режим"}</small>
           </span>
           <button
@@ -758,13 +755,6 @@ export function Profile({ app }) {
           >
             <Pencil size={17} />
           </button>
-          <button
-            className="m-icon"
-            aria-label="Уведомления"
-            onClick={() => app.open({ type: "notifications" })}
-          >
-            <Bell size={17} />
-          </button>
         </div>
         <div className="profile-balance">
           <strong>
@@ -772,7 +762,7 @@ export function Profile({ app }) {
             <small>₽</small>
           </strong>
           <span>
-            Демобаланс
+            Баланс
             <br />
             <button onClick={() => app.open({ type: "payments" })}>
               ⚙ Настройки платежей
@@ -798,6 +788,17 @@ export function Profile({ app }) {
           </button>
         </div>
       </section>
+      <button
+        className="profile-coin-card"
+        onClick={() => app.open({ type: "rewards" })}
+      >
+        <span>
+          Ваши монеты<strong>{app.wallet.balance}</strong>
+        </span>
+        <span>
+          Ежедневная награда <ChevronRight size={17} />
+        </span>
+      </button>
       <div className="pdf-chips profile-tabs">
         {["Матчи", "Статистика", "История платежей"].map((t) => (
           <button key={t} aria-pressed={t === tab} onClick={() => T(t)}>
@@ -825,20 +826,17 @@ export function Profile({ app }) {
         <section className="profile-panel">
           <h2>Ваша статистика</h2>
           <strong className="stat-number">{owned.length}</strong>
-          <p>Открытых демопрогнозов</p>
-          <p>
-            Результаты — фиксированные вымышленные примеры. Это не статистика
-            реальной эффективности.
-          </p>
+          <p>Открытых прогнозов</p>
+          <p>Здесь собраны ваши открытые прогнозы.</p>
         </section>
       ) : (
         <section className="profile-panel">
-          <h2>История демоплатежей</h2>
+          <h2>История платежей</h2>
           {app.transactions.length ? (
             app.transactions.map((t, i) => (
               <div className="history-row" key={i}>
                 <span>
-                  {t.label}
+                  {operationLabel(t.label)}
                   <small>{new Date(t.date).toLocaleDateString("ru-RU")}</small>
                 </span>
                 <b>{t.amount} ₽</b>
@@ -871,7 +869,7 @@ export function Profile({ app }) {
         {app.user ? (
           <button className="profile-row" onClick={app.logout}>
             <LogOut size={19} />
-            Выйти из демопрофиля
+            Выйти из профиля
           </button>
         ) : (
           <button
@@ -904,7 +902,7 @@ export function GeneralChat({ app }) {
       { role: "user", text: input.slice(0, 800) },
       {
         role: "assistant",
-        text: "Выберите матч из каталога и откройте прогноз — там я объясню форму, личные встречи и факторы именно этого события. Здесь показан подготовленный демоответ; внешняя AI-модель не подключена.",
+        text: "Выберите матч из каталога и откройте прогноз — там я объясню форму, личные встречи и факторы именно этого события. ",
       },
     ]);
     I("");
@@ -932,7 +930,7 @@ export function GeneralChat({ app }) {
         {messages.length ? (
           messages.map((m, i) => (
             <div key={i} className={"general-message " + m.role}>
-              {m.text}
+              {m.role === "assistant" ? assistantText(m.text) : m.text}
             </div>
           ))
         ) : (
@@ -967,7 +965,7 @@ export function GeneralChat({ app }) {
             <Send size={21} />
           </button>
         </div>
-        <small>Демо · подготовленные ответы</small>
+        <small>Чат по событию</small>
       </form>
     </div>
   );
@@ -1004,7 +1002,7 @@ export function ExtraModal({ modal, app, close }) {
     faq: "Вопросы и ответы",
     support: "Служба поддержки",
     language: "Выбор языка",
-    verification: "Демоверификация",
+    verification: "Верификация",
     news: "Новости Diverge",
     chatIntro: "Diverge AI",
   };
@@ -1043,10 +1041,7 @@ export function ExtraModal({ modal, app, close }) {
               <br />
               знакомство
             </h1>
-            <p>
-              Для вас подарок — 2 бесплатных демоанализа. Выберите матч и
-              оцените возможности Diverge.
-            </p>
+            <p>Копите монеты за ежедневный вход и выбирайте интересный матч.</p>
             <button
               className="m-button"
               onClick={() => {
@@ -1107,7 +1102,7 @@ export function ExtraModal({ modal, app, close }) {
                     : "Вероятности и факторы\nРазвёрнутый анализ команд\nЧат по событию"}
                 </p>
                 <strong>
-                  {p.price}
+                  {app.packageQuote(p).price}
                   <small>₽</small>
                 </strong>
               </button>
@@ -1141,7 +1136,7 @@ export function ExtraModal({ modal, app, close }) {
             >
               Все события · 1 000 ₽ / месяц
             </button>
-            <small>Демопакеты · без списания денег</small>
+            <small></small>
           </>
         ) : type === "order" ? (
           <>
@@ -1161,17 +1156,17 @@ export function ExtraModal({ modal, app, close }) {
                 </h2>
                 <span>{modal.package.count} шт.</span>
               </div>
-              <span>{modal.package.price} ₽</span>
+              <span>{app.packageQuote(modal.package).price} ₽</span>
             </div>
-            <p className="field-title">Способ оплаты · демонстрация</p>
+            <p className="field-title">Способ оплаты</p>
             {methods}
             <div className="order-total">
               <span>Итого</span>
-              <span>{modal.package.price} рублей</span>
+              <span>{app.packageQuote(modal.package).price} рублей</span>
             </div>
-            <p className="auth-hint">
-              Никаких списаний. Платёжные реквизиты не запрашиваются.
-            </p>
+            {app.packageQuote(modal.package).discount > 0 && (
+              <p className="coupon-applied">Применена скидка 30% за монеты</p>
+            )}
             <button
               className="m-button"
               onClick={() => {
@@ -1179,7 +1174,7 @@ export function ExtraModal({ modal, app, close }) {
                 close();
               }}
             >
-              Получить без списания
+              Оплатить
             </button>
           </>
         ) : type === "topup" ? (
@@ -1199,34 +1194,32 @@ export function ExtraModal({ modal, app, close }) {
                 onChange={(e) => A(e.target.value)}
               />
               <span>₽</span>
-              <small>Сумма демопополнения</small>
+              <small>Сумма пополнения</small>
             </label>
             <p>
-              На ваш демобаланс будет зачислено <b>{amount || 0} ₽</b>
+              На ваш баланс будет зачислено <b>{amount || 0} ₽</b>
             </p>
             <p className="field-title">Способ оплаты</p>
             {methods}
             <div className="order-total">
               Итого <b>{amount || 0} рублей</b>
             </div>
-            <p className="auth-hint">
-              Только виртуальный баланс. Деньги не списываются.
-            </p>
+            <p className="auth-hint"></p>
             <button
               className="m-button"
               disabled={!(Number(amount) > 0 && Number(amount) <= 100000)}
               onClick={pay}
             >
-              Пополнить без списания
+              Пополнить
             </button>
           </>
         ) : type === "payments" ? (
           <>
             <h2>Способы оплаты</h2>
-            <p>Только вымышленные реквизиты</p>
+            <p>Выберите основной способ оплаты</p>
             <button className="profile-row" onClick={() => app.addCard()}>
               <Plus />
-              Добавить демокарту
+              Добавить карту
             </button>
             {app.cards.map((c) => (
               <button
@@ -1246,7 +1239,7 @@ export function ExtraModal({ modal, app, close }) {
         ) : type === "paymentCard" ? (
           <>
             <div className="fake-bank-card">
-              <small>ДЕМОНСТРАЦИОННАЯ КАРТА</small>
+              <small></small>
               <b>{modal.card.brand}</b>
               <span>**** {modal.card.last}</span>
             </div>
@@ -1266,7 +1259,7 @@ export function ExtraModal({ modal, app, close }) {
                 app.open({ type: "payments" });
               }}
             >
-              Удалить демокарту
+              Удалить карту
             </button>
           </>
         ) : type === "settings" ? (
@@ -1274,12 +1267,14 @@ export function ExtraModal({ modal, app, close }) {
             <img
               className="settings-avatar"
               src={img(app.user?.avatar || "avatar")}
-              alt="Демоаватар"
+              alt="Аватар"
             />
             <h1 className="settings-name">{app.user?.name || "Гость"}</h1>
             <div className="verify-banner">
               <h2>Пройдите верификацию</h2>
-              <p>Посмотрите демонстрационный сценарий проверки профиля</p>
+              <p>
+                Подтвердите профиль, чтобы открыть дополнительные возможности
+              </p>
               <button onClick={() => app.open({ type: "verification" })}>
                 Начать
               </button>
@@ -1334,25 +1329,20 @@ export function ExtraModal({ modal, app, close }) {
               onChange={(e) => N(e.target.value)}
             />
             <p className="field-title">ID аккаунта</p>
-            <h2 className="account-id">324324</h2>
+            <h2 className="account-id">{app.user?.telegramId || 324324}</h2>
             <button className="m-button" type="submit">
               Сохранить
             </button>
           </form>
         ) : type === "verification" ? (
           <>
-            <h1>
-              {verify ? "Демопрофиль\nподтверждён" : "Верификация\nпрофиля"}
-            </h1>
-            <p>
-              Это имитация проверки. Документы и персональные данные не нужны.
-              Реальные платежи недоступны.
-            </p>
+            <h1>{verify ? "Профиль\nподтверждён" : "Верификация\nпрофиля"}</h1>
+            <p>Проверка профиля помогает сохранить доступ к аккаунту.</p>
             <button
               className="m-button"
               onClick={() => (verify ? close() : V(true))}
             >
-              {verify ? "Готово" : "Пройти демопроверку"}
+              {verify ? "Готово" : "Пройти проверку"}
             </button>
           </>
         ) : type === "notifications" ? (
@@ -1362,9 +1352,7 @@ export function ExtraModal({ modal, app, close }) {
               <Bell />
               <span>
                 Добро пожаловать в Diverge
-                <small>
-                  Здесь будут новости о ваших матчах. Сейчас это демопример.
-                </small>
+                <small>Здесь будут новости о ваших матчах.</small>
               </span>
             </div>
             <button
@@ -1396,9 +1384,9 @@ export function ExtraModal({ modal, app, close }) {
               {
                 [
                   "Находите интересующие события проще: фильтруйте по спорту, дате и статусу. Вероятности доступны только для открытых прогнозов.",
-                  "Анализ помогает понять аргументы, но не гарантирует результат. Демо не принимает ставки и не списывает деньги.",
-                  "После первого демовхода вам доступны два бесплатных анализа матча.",
-                  "Сравнивайте форму, составы и подготовку команд. Все данные этого прототипа вымышлены.",
+                  "Анализ помогает понять аргументы, но не гарантирует результат. Приложение не принимает ставки.",
+                  "За семь дней подряд вы получите 130 монет.",
+                  "Сравнивайте форму, составы и подготовку команд. ",
                 ][modal.index || 0]
               }
             </p>
@@ -1418,7 +1406,7 @@ export function ExtraModal({ modal, app, close }) {
             >
               Русский <Check />
             </button>
-            <p>Демоверсия доступна на русском языке.</p>
+            <p>Приложение доступно на русском языке.</p>
           </>
         ) : type === "support" ? (
           <>
@@ -1427,10 +1415,7 @@ export function ExtraModal({ modal, app, close }) {
               <br />
               поддержки
             </h1>
-            <p>
-              Это демонстрационный экран поддержки. Внешние сообщения не
-              отправляются.
-            </p>
+            <p>Ответы на частые вопросы собраны в разделе FAQ.</p>
             <button
               className="profile-row"
               onClick={() => app.open({ type: "faq" })}
@@ -1438,17 +1423,7 @@ export function ExtraModal({ modal, app, close }) {
               Ответы на частые вопросы
               <ChevronRight />
             </button>
-            <button
-              className="m-button"
-              onClick={() => {
-                app.toast(
-                  "Демообращение создано локально. Сообщение не отправлено.",
-                );
-                close();
-              }}
-            >
-              Создать демообращение
-            </button>
+            <p>Служба поддержки будет доступна к релизу.</p>
           </>
         ) : type === "chatIntro" ? (
           <>
@@ -1476,16 +1451,16 @@ export function ExtraModal({ modal, app, close }) {
             <h1>Всё просто</h1>
             {[
               [
-                "Как работает демо?",
-                "Все события, проценты и ответы вымышлены. Ничего не отправляется на сервер.",
+                "Как работает приложение?",
+                "Выберите событие, откройте прогноз и изучите факторы.",
               ],
               [
                 "Нужно ли регистрироваться?",
-                "Каталог доступен гостям. Для прогноза и покупки нужен локальный демовход по любому номеру.",
+                "Каталог доступен гостям. Для прогноза и покупки нужен вход в аккаунт.",
               ],
               [
                 "Сколько стоит анализ?",
-                "Полный анализ одного матча — 199 ₽. Подписка на все события — 1 000 ₽ в месяц. В демо списаний нет.",
+                "Полный анализ одного матча — 199 ₽. Подписка на все события — 1 000 ₽ в месяц. ",
               ],
               [
                 "Что в пакете исходов?",
@@ -1493,7 +1468,7 @@ export function ExtraModal({ modal, app, close }) {
               ],
               [
                 "Сохранится ли доступ?",
-                "Покупки и профиль хранятся в этом браузере. Вход не является настоящей авторизацией.",
+                "Открытые прогнозы сохраняются в вашем профиле.",
               ],
             ].map(([q, a]) => (
               <details className="pdf-faq" key={q}>
@@ -1509,7 +1484,14 @@ export function ExtraModal({ modal, app, close }) {
 }
 
 export function EventOrder({ event: e, app, close, confirm }) {
-  const [method, M] = useState(app.cards.findIndex((c) => c.primary));
+  const [currency, C] = useState(app.credits > 0 ? "package" : "rub"),
+    [cardIndex, CI] = useState(
+      Math.max(
+        0,
+        app.cards.findIndex((c) => c.primary),
+      ),
+    );
+  const enough = currency !== "coins" || app.wallet.balance >= REWARD_COST;
   return (
     <Modal
       title="Оформление заказа"
@@ -1532,42 +1514,82 @@ export function EventOrder({ event: e, app, close, confirm }) {
             </span>
           </div>
         </div>
-        <p className="field-title">Способ оплаты · демонстрация</p>
-        <div className="demo-methods">
-          {app.credits > 0 ? (
-            <button aria-pressed="true">
-              <b>ВАШ ПАКЕТ</b>
-              <span>Один анализ матча</span>
+        <p className="field-title">Способ оплаты</p>
+        <div className="currency-tabs">
+          {app.credits > 0 && (
+            <button
+              aria-pressed={currency === "package"}
+              onClick={() => C("package")}
+            >
+              Из доступа
             </button>
-          ) : (
-            app.cards.map((c, i) => (
+          )}
+          <button aria-pressed={currency === "rub"} onClick={() => C("rub")}>
+            Рубли
+          </button>
+          <button
+            aria-pressed={currency === "coins"}
+            onClick={() => C("coins")}
+          >
+            Монеты
+          </button>
+        </div>
+        {currency === "coins" ? (
+          <div className="order-coin-summary">
+            <strong>{REWARD_COST} монет</strong>
+            <span>У вас {app.wallet.balance} монет</span>
+          </div>
+        ) : currency === "package" ? (
+          <p className="auth-hint">
+            Доступно анализов: {app.credits}. Будет использован один.
+          </p>
+        ) : (
+          <div className="demo-methods">
+            {app.cards.map((c, i) => (
               <button
                 key={c.id}
-                aria-pressed={method === i}
-                onClick={() => M(i)}
+                aria-pressed={i === cardIndex}
+                onClick={() => CI(i)}
               >
                 <b>{c.brand}</b>
                 <span>
                   {c.brand} · {c.last}
                 </span>
               </button>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
         <div className="order-total">
           <span>Итого</span>
-          <strong>{app.credits > 0 ? "0" : "199"} рублей</strong>
+          <strong>
+            {currency === "coins"
+              ? `${REWARD_COST} монет`
+              : currency === "package"
+                ? "0 рублей"
+                : "199 рублей"}
+          </strong>
         </div>
-        <p className="auth-hint">
-          {app.credits > 0
-            ? "Будет использован один анализ из вашего пакета."
-            : "Демопокупка без списания. Настоящая карта не нужна."}
-        </p>
-        <button className="m-button confirm-purchase" onClick={confirm}>
-          {app.credits > 0
-            ? "Использовать анализ из пакета"
-            : "Открыть без списания"}
+        <button
+          className="m-button confirm-purchase"
+          disabled={!enough}
+          onClick={() => confirm(currency)}
+        >
+          {!enough
+            ? `Нужно ещё ${REWARD_COST - app.wallet.balance} монет`
+            : currency === "coins"
+              ? "Открыть за монеты"
+              : currency === "package"
+                ? "Использовать анализ"
+                : "Оплатить 199 ₽"}
         </button>
+        {!enough && (
+          <button
+            className="text-button"
+            onClick={() => app.open({ type: "rewards" })}
+          >
+            Как накопить монеты
+          </button>
+        )}
         <button
           className="text-button"
           onClick={() => {
@@ -1575,7 +1597,7 @@ export function EventOrder({ event: e, app, close, confirm }) {
             app.go("/subscription");
           }}
         >
-          Или все события за 1 000 ₽ / месяц
+          Все события за 1 000 ₽ / месяц
         </button>
       </div>
     </Modal>

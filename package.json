@@ -9,8 +9,8 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test tests/*.test.js",
     "test:telegram": "node scripts/check-telegram-launch.mjs",
-    "test:experience": "node scripts/check-pdf-design.mjs",
-    "test:e2e": "node scripts/check-pdf-design.mjs",
+    "test:experience": "node scripts/check-rewards.mjs",
+    "test:e2e": "node scripts/check-rewards.mjs",
     "test:design": "node scripts/check-pdf-motion.mjs",
     "test:mobile": "node scripts/check-mobile-polish.mjs",
     "test:telegram-window": "node scripts/check-telegram-window.mjs"

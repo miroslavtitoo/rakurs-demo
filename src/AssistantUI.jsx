@@ -30,13 +30,14 @@ function useSaved(key, initial) {
 
 let modalCount = 0;
 let savedOverflow = "";
-function Modal({ title, close, children, kind = "" }) {
+function Modal({ title, close, children, kind = "", dismissible = true }) {
   const isPresent = useIsPresent();
   const reduced = useReducedMotion();
+  const rewardSheet = kind.includes("reward-sheet");
   const immersive = kind.includes("pdf-stories") || kind.includes("auth-modal");
   const panel = useRef(null);
   const closeRef = useRef(close);
-  closeRef.current = close;
+  closeRef.current = dismissible ? close : () => {};
   useEffect(() => {
     const previous = document.activeElement;
     const shell = document.querySelector(".market-app");
@@ -95,7 +96,7 @@ function Modal({ title, close, children, kind = "" }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: reduced ? 0 : 0.24 }}
-      onClick={close}
+      onClick={() => closeRef.current()}
     >
       <motion.section
         className={`m-modal ${kind}`}
@@ -110,12 +111,13 @@ function Modal({ title, close, children, kind = "" }) {
           reduced
             ? false
             : {
-                y: immersive ? 28 : 20,
+                y: rewardSheet ? "100%" : immersive ? 28 : 20,
                 scale: immersive ? 0.975 : 1,
-                opacity: 0,
+                opacity: rewardSheet ? 1 : 0,
               }
         }
         animate={{ y: 0, scale: 1, opacity: 1 }}
+        exit={rewardSheet && !reduced ? { y: "100%" } : undefined}
         transition={{ duration: reduced ? 0 : 0.38, ease: [0.22, 1, 0.36, 1] }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -124,9 +126,11 @@ function Modal({ title, close, children, kind = "" }) {
             <Sparkles size={18} />
             {title}
           </span>
-          <button className="m-icon" onClick={close} aria-label="Закрыть">
-            <X size={20} />
-          </button>
+          {dismissible && (
+            <button className="m-icon" onClick={close} aria-label="Закрыть">
+              <X size={20} />
+            </button>
+          )}
         </header>
         {children}
       </motion.section>
@@ -158,7 +162,7 @@ const storySlides = [
   ],
   [
     "Откройте анализ.",
-    "Купите прогноз на один матч за 199 ₽ или подключите доступ ко всем событиям на месяц. В демо деньги не списываются.",
+    "Купите прогноз на один матч за 199 ₽ или подключите доступ ко всем событиям на месяц. ",
     "Один матч",
     "199 ₽",
     "или подписка на все события",
@@ -172,7 +176,7 @@ const storySlides = [
   ],
   [
     "Обсудите с AI.",
-    "У каждого события свой чат. Задайте вопрос или добавьте свою гипотезу. В демо ответы подготовлены заранее; реальная модель пока не подключена.",
+    "У каждого события свой чат. Задайте вопрос или добавьте свою гипотезу. ",
     "Чат по событию",
     "Почему?",
     "Разбираем аргументы вместе",
@@ -320,7 +324,7 @@ function Stories({ close }) {
         <button className="text-button" onClick={close}>
           Пропустить
         </button>
-        <small>Демо · AI, прогнозы и оплата — примеры</small>
+        <small></small>
       </div>
     </Modal>
   );

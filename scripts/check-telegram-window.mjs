@@ -1,3 +1,4 @@
+import { rewardDay } from "../src/rewards.js";
 import { chromium, expect } from "@playwright/test";
 import fs from "node:fs/promises";
 const base = process.env.DEMO_URL || "http://localhost:5173/";
@@ -24,6 +25,19 @@ async function create(
   await context.addInitScript(
     ({ seen, unsupported }) => {
       window.bridgeEvents = [];
+      if (seen === true)
+        localStorage.setItem(
+          "rakurs:rewardsWallet",
+          JSON.stringify({
+            balance: 0,
+            lastShownDay: new Intl.DateTimeFormat("en-CA", {
+              timeZone: "Europe/Moscow",
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }).format(new Date()),
+          }),
+        );
       if (seen !== null)
         localStorage.setItem("rakurs:pdfOnboardingSeen", JSON.stringify(seen));
       window.TelegramWebviewProxy = {
@@ -105,7 +119,9 @@ try {
     expect(
       (await page.locator(".pdf-story .diverge-logo").boundingBox()).y,
     ).toBeGreaterThanOrEqual(56);
-    await expect(page.locator(".story-demo-note")).toBeInViewport();
+    await expect(
+      page.getByRole("button", { name: "Пропустить", exact: true }),
+    ).toHaveCount(0);
     await expect(
       page.getByRole("button", { name: "Далее", exact: true }),
     ).toBeInViewport();
@@ -116,7 +132,8 @@ try {
     ).toBe(true);
     await page.screenshot({ path: `tmp/telegram-window/first-${width}.png` });
     for (let i = 0; i < 4; i++) {
-      await page.getByRole("button", { name: `Сторис ${i + 1} из 4` }).click();
+      if (i > 0)
+        await page.getByRole("button", { name: "Далее", exact: true }).click();
       const art = await page.locator(".live-story-art>div").boundingBox(),
         copy = await page.locator(".pdf-story-copy").boundingBox();
       expect(
@@ -127,7 +144,8 @@ try {
     // An unfinished first visit must still show onboarding after a reload.
     await page.reload();
     await expect(page.locator(".pdf-stories")).toBeVisible();
-    await page.getByRole("button", { name: "Пропустить", exact: true }).click();
+    for (let i = 0; i < 4; i++)
+      await page.getByRole("button", { name: "Далее", exact: true }).click();
     expect(
       await page.evaluate(() =>
         localStorage.getItem("rakurs:pdfOnboardingSeen"),
@@ -135,6 +153,10 @@ try {
     ).toBe("true");
     await page
       .getByRole("button", { name: /Смотреть без регистрации/ })
+      .click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Закрыть", exact: true })
       .click();
     await page.reload();
     await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -145,6 +167,9 @@ try {
     // Login and logout must not replay the already dismissed first-visit stories.
     await page.goto(base + "#/match/fox-metro");
     await page.getByRole("button", { name: /Купить прогноз/ }).click();
+    await page
+      .getByRole("button", { name: "Войти по номеру телефона", exact: true })
+      .click();
     await page.getByLabel("Номер телефона").fill("123");
     await page.getByRole("button", { name: "Войти", exact: true }).click();
     await expect(page.getByRole("dialog")).toHaveAttribute(
@@ -155,11 +180,16 @@ try {
     await page.getByRole("button", { name: "Закрыть", exact: true }).click();
     await page.goto(base + "#/profile");
     await page
-      .getByRole("button", { name: "Выйти из демопрофиля", exact: true })
+      .getByRole("button", { name: "Выйти из профиля", exact: true })
       .click();
     await page.goto(base + "#" + params);
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    await page.getByRole("button", { name: "Демо · 18+", exact: true }).click();
+    await page
+      .getByRole("button", {
+        name: "Открыть знакомство с приложением",
+        exact: true,
+      })
+      .click();
     await expect(page.locator(".pdf-stories")).toBeVisible();
     await context.close();
   }

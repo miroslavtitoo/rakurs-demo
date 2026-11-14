@@ -1,3 +1,4 @@
+import { rewardDay } from "../src/rewards.js";
 import http from "node:http";
 import path from "node:path";
 import fs from "node:fs/promises";
@@ -52,10 +53,17 @@ try {
     viewport: { width: 1440, height: 1000 },
     reducedMotion: "reduce",
   });
-  await page.addInitScript(() => {
-    localStorage.setItem('rakurs:pdfOnboardingSeen','true');
-    localStorage.setItem('rakurs:demoUser',JSON.stringify({name:'Демо'}));
-  });
+  await page.addInitScript((day) => {
+    localStorage.setItem("rakurs:pdfOnboardingSeen", "true");
+    localStorage.setItem(
+      "rakurs:demoUser",
+      JSON.stringify({ name: "Пользователь" }),
+    );
+    localStorage.setItem(
+      "rakurs:rewardsWallet",
+      JSON.stringify({ balance: 0, lastShownDay: day }),
+    );
+  }, rewardDay());
   const errors = [],
     bad = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -64,22 +72,35 @@ try {
       bad.push(r.url());
   });
   await page.goto("http://127.0.0.1:5174/rakurs-demo/");
-  await expect(page.getByRole('heading',{name:'Все матчи',exact:true})).toBeVisible();
-  await page.evaluate(()=>document.fonts.ready);
+  await expect(
+    page.getByRole("heading", { name: "Все матчи", exact: true }),
+  ).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(500);
-  await page.screenshot({path:'output/preview-desktop.png'});
-  await page.setViewportSize({width:390,height:844});
-  await page.screenshot({path:'output/preview-mobile.png'});
-  await page.goto('http://127.0.0.1:5174/rakurs-demo/#/match/fox-metro');
-  await expect(page.locator('.analysis-dashboard')).toHaveCount(0);
-  await page.getByRole('button',{name:'Купить прогноз · 199 ₽',exact:true}).click();
-  await page.getByRole('button',{name:'Открыть без списания',exact:true}).click();
-  await expect(page.locator('.analysis-dashboard')).toBeVisible();
-  await page.reload();await expect(page.locator('.analysis-dashboard')).toBeVisible();
-  await page.getByRole('button',{name:'Чат по событию',exact:true}).click();
-  await page.getByRole('textbox',{name:'Сообщение AI'}).fill('Почему такая вероятность?');
-  await page.getByRole('button',{name:'Отправить сообщение'}).click();
-  await expect(page.locator('.assistant-chat-bubble').last()).toContainText('65%');
+  await page.screenshot({ path: "output/preview-desktop.png" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: "output/preview-mobile.png" });
+  await page.goto("http://127.0.0.1:5174/rakurs-demo/#/match/fox-metro");
+  await expect(page.locator(".analysis-dashboard")).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Купить прогноз · 199 ₽", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Оплатить 199 ₽", exact: true })
+    .click();
+  await expect(page.locator(".analysis-dashboard")).toBeVisible();
+  await page.reload();
+  await expect(page.locator(".analysis-dashboard")).toBeVisible();
+  await page
+    .getByRole("button", { name: "Чат по событию", exact: true })
+    .click();
+  await page
+    .getByRole("textbox", { name: "Сообщение AI" })
+    .fill("Почему такая вероятность?");
+  await page.getByRole("button", { name: "Отправить сообщение" }).click();
+  await expect(page.locator(".assistant-chat-bubble").last()).toContainText(
+    "65%",
+  );
   if (errors.length || bad.length)
     throw new Error(JSON.stringify({ errors, bad }));
   console.log(

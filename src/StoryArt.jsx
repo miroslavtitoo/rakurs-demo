@@ -86,7 +86,7 @@ function SportsCards({ reduced, paused }) {
           </div>
         </motion.div>
       ))}
-      <span className="story-art-caption">ВЫМЫШЛЕННЫЙ ПРИМЕР</span>
+      <span className="story-art-caption"></span>
     </div>
   );
 }
@@ -238,7 +238,7 @@ function ProbabilityGauge({ reduced }) {
           74<span>%</span>
         </strong>
         <span>Победа</span>
-        <small>Демонстрационная оценка</small>
+        <small></small>
       </motion.div>
     </div>
   );

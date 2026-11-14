@@ -1,3 +1,4 @@
+import { rewardDay } from "../src/rewards.js";
 import { chromium, expect } from "@playwright/test";
 
 const base = process.env.DEMO_URL || "http://localhost:5173/";
@@ -30,9 +31,13 @@ try {
       viewport: { width: 390, height: 844 },
       reducedMotion: "reduce",
     });
-    await context.addInitScript(() =>
-      localStorage.setItem("rakurs:pdfOnboardingSeen", "true"),
-    );
+    await context.addInitScript((day) => {
+      localStorage.setItem("rakurs:pdfOnboardingSeen", "true");
+      localStorage.setItem(
+        "rakurs:rewardsWallet",
+        JSON.stringify({ balance: 0, lastShownDay: day }),
+      );
+    }, rewardDay());
     const page = await context.newPage();
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto(base + hash);

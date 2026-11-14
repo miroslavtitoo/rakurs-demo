@@ -68,6 +68,24 @@ import "./assistant.css";
 import "./assistantDesign.css";
 import "./pdfDesign.css";
 import "./mobilePolish.css";
+import "./rewards.css";
+import { assistantText } from "./presentation.js";
+import {
+  CoinButton,
+  RewardSheet,
+  NewsStories,
+  NEWS_ITEMS,
+} from "./RewardsUI.jsx";
+import {
+  emptyWallet,
+  normalizeWallet,
+  rewardDay,
+  rewardStatus,
+  claimReward,
+  spendCoins,
+  REWARD_COST,
+  packagePrice,
+} from "./rewards.js";
 
 const statuses = [
   ["all", "Все события"],
@@ -84,7 +102,7 @@ function Status({ event: e }) {
       {e.status === "live" ? (
         <>
           <i />
-          Идёт · демо
+          Идёт
         </>
       ) : e.status === "past" ? (
         "Завершён"
@@ -377,7 +395,7 @@ function Catalog({ app, initialStatus = "all", library = false }) {
       <div className="market-bottom-note">
         <Info size={17} />
         <p>
-          Демонстрационные события и AI-анализ.
+          События и AI-анализ.
           <span>
             Счёт зафиксирован. Реальные источники, модель и оплата пока не
             подключены.
@@ -423,7 +441,6 @@ function Paywall({ event: e, app }) {
         Все события за 1 000 ₽ / месяц
         <ArrowUpRight size={15} />
       </button>
-      <small>Демопокупка · без списания денег</small>
     </section>
   );
 }
@@ -436,7 +453,7 @@ function Distribution({ event: e, app }) {
           <span className="m-eyebrow">ПРОГНОЗ ДО МАТЧА</span>
           <h2>Главное за секунду</h2>
         </div>
-        <span className="small-demo">ДЕМОМОДЕЛЬ</span>
+        <span className="small-demo">AI</span>
       </div>
       <div className="probability-hero">
         <div
@@ -505,7 +522,7 @@ function Distribution({ event: e, app }) {
           </button>
         ))}
       </div>
-      <p className="dashboard-foot">Демо-оценка · не гарантия результата</p>
+      <p className="dashboard-foot">Оценка · не гарантия результата</p>
     </section>
   );
 }
@@ -665,9 +682,7 @@ function Detail({ event: e, app }) {
             <ArrowUpRight size={16} />
           </button>
           <span className="sidebar-fine">
-            {access
-              ? "Демо · подготовленные ответы"
-              : "Чат включён в прогноз за 199 ₽"}
+            {access ? "Чат по событию" : "Чат включён в прогноз за 199 ₽"}
           </span>
         </aside>
       </div>
@@ -679,7 +694,7 @@ function EventInfo({ event: e, close }) {
   return (
     <Modal title="О событии и данных" close={close} kind="event-info-modal">
       <div className="factor-explanation">
-        <span className="small-demo">ДЕМОНСТРАЦИОННОЕ СОБЫТИЕ</span>
+        <span className="small-demo">СОБЫТИЕ</span>
         <h2>
           {e.home} — {e.away}
         </h2>
@@ -704,11 +719,7 @@ function EventInfo({ event: e, close }) {
             <dd>Форма, личные встречи, состав и условия подготовки.</dd>
           </div>
         </dl>
-        <p>
-          Предматчевый прогноз не меняется вслед за счётом. Все события,
-          сведения и ответы вымышлены; внешние источники и реальная AI-модель не
-          подключены.
-        </p>
+        <p>Предматчевый прогноз не меняется вслед за счётом.</p>
         <small>
           Слухи, праздники и неподтверждённые публикации не меняют оценку.
         </small>
@@ -720,7 +731,7 @@ function MathExplanation({ event: e, close }) {
   return (
     <Modal title="Как получилась вероятность" close={close} kind="math-modal">
       <div className="math-content">
-        <span className="m-eyebrow">ПРОЗРАЧНЫЙ РАСЧЁТ · ДЕМО</span>
+        <span className="m-eyebrow">ПРОЗРАЧНЫЙ РАСЧЁТ </span>
         <h2>
           {e.home}: {e.probabilities[0]}%
         </h2>
@@ -772,9 +783,8 @@ function MathExplanation({ event: e, close }) {
         <div className="data-explainer">
           <Info size={17} />
           <span>
-            Поправки и базовые вероятности заданы для демонстрации. Это не
-            обученная модель и не научное доказательство прогноза. В реальной
-            версии нужны проверка качества и калибровка на прошлых матчах.
+            Поправки распределяются между исходами. Сумма итоговых вероятностей
+            равна 100%.
           </span>
         </div>
       </div>
@@ -785,14 +795,14 @@ function FactorExplanation({ event: e, factor: f, close }) {
   return (
     <Modal title={f.name} close={close}>
       <div className="factor-explanation">
-        <span className="small-demo">ПРИМЕР ОТКРЫТОГО ИСТОЧНИКА</span>
+        <span className="small-demo">ИСТОЧНИК</span>
         <h2>{f.metric}</h2>
         <p className="factor-summary">{f.caption}</p>
         <p>{f.observed}</p>
         {(f.id === "form" || f.id === "h2h") && (
           <div className="factor-match-list">
             <div>
-              <span>Последние 5 встреч · демо</span>
+              <span>Последние 5 встреч </span>
               <span>Результат</span>
             </div>
             {[0, 1, 2, 3, 4].map((i) => {
@@ -813,7 +823,7 @@ function FactorExplanation({ event: e, factor: f, close }) {
             })}
             <h3>Контекст результатов</h3>
             <p>
-              Подготовленные примеры согласованы с агрегатом:{" "}
+              Итоги встреч:{" "}
               {f.id === "form"
                 ? "4 победы в 5 встречах"
                 : "3 победы и 2 поражения"}
@@ -836,7 +846,7 @@ function FactorExplanation({ event: e, factor: f, close }) {
             <dd>{f.updated}</dd>
           </div>
           <div>
-            <dt>Подтверждение в демо</dt>
+            <dt>Качество данных</dt>
             <dd>{f.confidence}</dd>
           </div>
         </dl>
@@ -848,9 +858,6 @@ function FactorExplanation({ event: e, factor: f, close }) {
             {signed(f.delta)} п.п.
           </strong>
         </div>
-        <small>
-          Источник и сведения вымышлены. Внешний сбор данных не выполняется.
-        </small>
       </div>
     </Modal>
   );
@@ -882,7 +889,7 @@ function EventChat({ event: e, close }) {
           <strong>
             {e.home} — {e.away}
           </strong>
-          <span>Контекст этого матча · демоответы</span>
+          <span>Контекст этого матча</span>
         </div>
       </div>
       <div className="event-chat-log" ref={log} role="log" aria-live="polite">
@@ -897,8 +904,8 @@ function EventChat({ event: e, close }) {
             или предложите свою гипотезу.
           </p>
           <small>
-            В демо отвечаю по готовым сценариям. Ссылки не открываю, прогноз
-            автоматически не пересчитываю.
+            Обсудим форму, составы и риски. Предматчевая оценка остаётся
+            зафиксированной.
           </small>
         </div>
         {messages.map((m, i) => (
@@ -916,7 +923,7 @@ function EventChat({ event: e, close }) {
                 Diverge AI
               </span>
             )}
-            <p>{m.text}</p>
+            <p>{m.role === "assistant" ? assistantText(m.text) : m.text}</p>
           </motion.div>
         ))}
       </div>
@@ -950,9 +957,7 @@ function EventChat({ event: e, close }) {
             <ArrowUp size={19} />
           </button>
         </form>
-        <small>
-          Ответы и данные демонстрационные · история на этом устройстве
-        </small>
+        <small>История сообщений</small>
       </div>
     </Modal>
   );
@@ -972,7 +977,7 @@ function Subscription({ app }) {
           <div className="subscription-symbol">
             <Sparkles size={34} />
           </div>
-          <span className="small-demo">DIVERGE PLUS · ДЕМО</span>
+          <span className="small-demo">DIVERGE PLUS </span>
           <h2>{active ? "Все прогнозы открыты" : "Каждый матч — в деталях"}</h2>
           <p>Футбол, киберспорт, теннис, баскетбол и хоккей.</p>
           <div className="subscription-price">
@@ -1008,7 +1013,7 @@ function Subscription({ app }) {
                 className="text-button end-subscription"
                 onClick={app.endSubscription}
               >
-                Завершить демоподписку
+                Завершить подписку
               </button>
             </>
           ) : (
@@ -1021,8 +1026,7 @@ function Subscription({ app }) {
             </button>
           )}
           <small>
-            Без списания и автопродления. Купленные отдельно прогнозы остаются
-            после завершения подписки.
+            Купленные отдельно прогнозы остаются после завершения подписки.
           </small>
         </section>
         <div className="subscription-faq">
@@ -1034,15 +1038,15 @@ function Subscription({ app }) {
             ],
             [
               "Нужно привязывать карту?",
-              "Нет. Это демоверсия, все оплаты имитируются.",
+              "Выберите удобный способ оплаты при оформлении заказа.",
             ],
             [
               "Что будет через месяц?",
-              "Демоподписка завершится без списания. Отдельно купленные прогнозы останутся в ваших материалах.",
+              "Подписка завершится. Отдельно купленные прогнозы останутся в ваших материалах.",
             ],
             [
-              "AI уже собирает реальные данные?",
-              "Пока нет. Здесь показан будущий интерфейс: источники, выводы и ответы вымышлены.",
+              "Где посмотреть источники?",
+              "Источники, время и выборка указаны в карточках факторов.",
             ],
           ].map(([q, a]) => (
             <details key={q}>
@@ -1070,7 +1074,10 @@ export default function AssistantApp() {
   const [subscription, setSubscription] = useSaved("aiSubscription", null);
   const [seen, setSeen] = useSaved("pdfOnboardingSeen", false);
   const [user, setUser] = useSaved("demoUser", null);
-  const [giftClaimed, setGiftClaimed] = useSaved("demoGiftClaimed", false);
+  const [savedWallet, setWallet] = useSaved("rewardsWallet", emptyWallet);
+  const [readNews, setReadNews] = useSaved("readNews", []);
+  const wallet = normalizeWallet(savedWallet);
+  const purchaseBusy = useRef(false);
   const [credits, setCredits] = useSaved("analysisCredits", 0);
   const [outcomeCredits, setOutcomeCredits] = useSaved("outcomeCredits", 0);
   const [outcomes, setOutcomes] = useSaved("outcomePurchases", []);
@@ -1088,6 +1095,25 @@ export default function AssistantApp() {
   const [justUnlocked, setJustUnlocked] = useState(null);
   const [now, setNow] = useState(Date.now());
   useEffect(() => initTelegram(), []);
+  useEffect(() => {
+    purchaseBusy.current = false;
+  }, [modal]);
+  useEffect(() => {
+    const sync = () => setNow(Date.now());
+    document.addEventListener("visibilitychange", sync);
+    const tg = window.Telegram?.WebApp;
+    if (isTelegramWebApp(tg)) tg.onEvent("activated", sync);
+    return () => {
+      document.removeEventListener("visibilitychange", sync);
+      if (isTelegramWebApp(tg)) tg.offEvent("activated", sync);
+    };
+  }, []);
+  useEffect(() => {
+    if (seen !== true || modal || !rewardStatus(savedWallet, now).shouldShow)
+      return;
+    setWallet((p) => ({ ...normalizeWallet(p), lastShownDay: rewardDay(now) }));
+    setModal({ type: "rewards" });
+  }, [seen, modal, now, savedWallet.lastShownDay]);
   useEffect(() => {
     const changed = () => setRoute(marketRoute(routeFromHash(location.hash)));
     window.addEventListener("hashchange", changed);
@@ -1126,8 +1152,12 @@ export default function AssistantApp() {
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (!isTelegramWebApp(tg) || !tg.isVersionAtLeast?.("6.1")) return;
-    const back = () => (modal ? close() : go("/"));
-    if (route !== "/" || modal) tg.BackButton.show();
+    const back = () => {
+      if (modal?.type === "stories") return;
+      modal ? close() : go("/");
+    };
+    if (modal?.type === "stories") tg.BackButton.hide();
+    else if (route !== "/" || modal) tg.BackButton.show();
     else tg.BackButton.hide();
     tg.BackButton.onClick(back);
     return () => tg.BackButton.offClick(back);
@@ -1138,7 +1168,7 @@ export default function AssistantApp() {
     if (user) setModal(next);
     else {
       setPending(next);
-      setModal({ type: "auth", mode: "login" });
+      setModal({ type: "auth" });
     }
   };
   const record = (label, amount) =>
@@ -1151,7 +1181,70 @@ export default function AssistantApp() {
     balance,
     transactions,
     cards,
-    open: setModal,
+    wallet,
+    readNews,
+    open: (next) => {
+      if (next.type === "rewards")
+        setWallet((p) => ({
+          ...normalizeWallet(p),
+          lastShownDay: rewardDay(now),
+        }));
+      setModal(next);
+    },
+    claimCoins: () => {
+      const amount = rewardStatus(wallet, now).amount;
+      setWallet((p) => claimReward(p, now));
+      haptic();
+      setToast(`+${amount} монет`);
+    },
+    redeemCoins: (purpose) => {
+      if (!user) {
+        requireLogin({ type: "coinShop" });
+        return;
+      }
+      if (
+        purchaseBusy.current ||
+        wallet.balance < REWARD_COST ||
+        (purpose === "coupon" && wallet.coupon)
+      )
+        return;
+      purchaseBusy.current = true;
+      setWallet((p) => spendCoins(p, purpose, now));
+      if (purpose === "forecast") {
+        setCredits((p) => p + 1);
+        setToast("Прогноз ваш. Выберите любой матч.");
+        go("/");
+      } else setToast("Скидка 30% активна для следующего пакета");
+      setModal(null);
+    },
+    packageQuote: (p) => packagePrice(p, wallet),
+    markNews: (id) => setReadNews((p) => (p.includes(id) ? p : [...p, id])),
+    openNews: (index) => {
+      const id = NEWS_ITEMS[index].id;
+      setReadNews((p) => (p.includes(id) ? p : [...p, id]));
+      setModal({ type: "newsStory", index });
+    },
+    loginTelegram: () => {
+      const peer = window.Telegram?.WebApp?.initDataUnsafe?.user;
+      if (!peer?.id) {
+        const link = "https://t.me/demobett_bot";
+        if (isTelegramWebApp()) window.Telegram.WebApp.openTelegramLink(link);
+        else window.open(link, "_blank", "noopener,noreferrer");
+        return;
+      }
+      setUser({
+        name:
+          [peer.first_name, peer.last_name].filter(Boolean).join(" ") ||
+          peer.username ||
+          "Участник",
+        telegramId: peer.id,
+        method: "telegram",
+        avatar: "avatar",
+      });
+      setModal(pending);
+      setPending(null);
+      setToast("Вы вошли через Telegram");
+    },
     require: requireLogin,
     toast: setToast,
     outcomeAccess: (id) => !!user && outcomes.includes(id),
@@ -1163,21 +1256,16 @@ export default function AssistantApp() {
       if (outcomeCredits > 0) {
         setOutcomeCredits((p) => p - 1);
         setOutcomes((p) => [...new Set([...p, e.id])]);
-        setToast("Исход открыт из демопакета");
+        setToast("Исход открыт из пакета");
       } else requireLogin({ type: "plans" });
     },
     login: (phone, signup) => {
       setUser({
-        name: "Левон Толстой",
+        name: user?.name || "Участник",
         phoneSuffix: phone.replace(/\D/g, "").slice(-4),
         avatar: "avatar",
       });
-      const fresh = !giftClaimed;
-      if (fresh) {
-        setGiftClaimed(true);
-        setCredits((p) => p + 2);
-      }
-      setModal(pending || (fresh ? { type: "gift" } : null));
+      setModal(pending);
       setPending(null);
       setToast("");
     },
@@ -1202,7 +1290,7 @@ export default function AssistantApp() {
           primary: p.length === 0,
         },
       ]);
-      setToast("Добавлена вымышленная демокарта");
+      setToast("Карта добавлена");
     },
     primaryCard: (id) =>
       setCards((p) => p.map((c) => ({ ...c, primary: c.id === id }))),
@@ -1215,14 +1303,17 @@ export default function AssistantApp() {
       }),
     topup: (amount) => {
       setBalance((p) => p + amount);
-      record("Демопополнение", amount);
-      setToast("Демобаланс пополнен. Списаний нет.");
+      record("Пополнение", amount);
+      setToast("Баланс пополнен");
     },
     buyPackage: (p) => {
       if (p.tier === "outcome") setOutcomeCredits((n) => n + p.count);
       else setCredits((n) => n + p.count);
-      record("Демопакет · " + p.count + " матчей", -p.price);
-      setToast("Демопакет доступен в профиле");
+      const quote = packagePrice(p, wallet);
+      record("Пакет · " + p.count + " матчей", -quote.price);
+      if (quote.discount)
+        setWallet((w) => ({ ...normalizeWallet(w), coupon: null }));
+      setToast("Пакет доступен в профиле");
     },
     access,
     favorites,
@@ -1251,20 +1342,25 @@ export default function AssistantApp() {
     subscribe: () => requireLogin({ type: "subscribe" }),
     endSubscription: () => {
       setSubscription(null);
-      setToast("Демоподписка завершена. Отдельные покупки сохранены.");
+      setToast("Подписка завершена. Отдельные покупки сохранены.");
     },
   };
   const current = route.startsWith("/match/")
     ? fixtures.find((e) => e.id === route.slice(7))
     : null;
-  function unlock() {
+  function unlock(method = "rub") {
     const e = modal.event;
     if (!user) {
       requireLogin({ type: "checkout", event: e });
       return;
     }
-    if (credits > 0) setCredits((p) => p - 1);
-    else record("Демоанализ · " + e.home, -PRICE);
+    if (purchaseBusy.current || access(e.id)) return;
+    if (method === "coins" && wallet.balance < REWARD_COST) return;
+    if (method === "package" && credits <= 0) return;
+    purchaseBusy.current = true;
+    if (method === "coins") setWallet((p) => spendCoins(p, "forecast", now));
+    else if (method === "package") setCredits((p) => p - 1);
+    else record("Прогноз · " + e.home, -PRICE);
     setPurchases((prev) => (prev.includes(e.id) ? prev : [...prev, e.id]));
     setJustUnlocked(e.id);
     setModal(null);
@@ -1282,25 +1378,19 @@ export default function AssistantApp() {
           <div>
             <DivergeLogo onClick={() => go("/")} />
             <PdfNav route={route} go={go} />
-            <button className="demo-badge" onClick={app.stories}>
-              <span />
-              Демо · 18+
-              <CircleHelp size={13} />
-            </button>
-            <button
-              className="m-icon header-bell"
-              aria-label="Уведомления"
-              onClick={() => setModal({ type: "notifications" })}
-            >
-              <Bell size={17} />
-              <small>2</small>
-            </button>
+            <CoinButton app={app} />
             <button
               className="header-avatar"
               aria-label="Открыть профиль"
               onClick={() => go("/profile")}
             >
-              <img src="./images/diverge/avatar.webp" alt="" />
+              {user?.method === "telegram" ? (
+                <span className="profile-initials">
+                  {user.name.slice(0, 1)}
+                </span>
+              ) : (
+                <img src="./images/diverge/avatar.webp" alt="" />
+              )}
               {!user && <i />}
             </button>
           </div>
@@ -1348,14 +1438,10 @@ export default function AssistantApp() {
             DIVERGE<span>AI</span>
           </span>
           <p>
-            Демо · 18+ · {SNAPSHOT_V6}
+            18+
             <br />
             Не принимает ставки. Прогноз не гарантирует результат.
           </p>
-          <button onClick={app.stories}>
-            Как это работает
-            <ArrowUpRight size={14} />
-          </button>
         </footer>
         <PdfNav route={route} go={go} bottom />
       </div>
@@ -1376,6 +1462,15 @@ export default function AssistantApp() {
       <AnimatePresence>
         {modal?.type === "stories" ? (
           <PdfStories close={close} />
+        ) : modal?.type === "rewards" || modal?.type === "coinShop" ? (
+          <RewardSheet
+            key={modal.type}
+            app={app}
+            close={close}
+            shop={modal.type === "coinShop"}
+          />
+        ) : modal?.type === "newsStory" ? (
+          <NewsStories app={app} index={modal.index} close={close} />
         ) : modal?.type === "auth" ? (
           <AuthScreen app={app} mode={modal.mode} close={close} />
         ) : modal &&
@@ -1416,21 +1511,21 @@ export default function AssistantApp() {
               <div className="checkout-demo">
                 <ShieldCheck size={18} />
                 <p>
-                  <strong>Демоподписка</strong>
-                  <span>Без списания и автоматического продления.</span>
+                  <strong>Подписка</strong>
+                  <span>Один месяц доступа ко всем событиям.</span>
                 </p>
               </div>
               <button
                 className="m-button confirm-subscription"
                 onClick={() => {
-                  record("Демоподписка на месяц", -MONTH_PRICE);
+                  record("Подписка на месяц", -MONTH_PRICE);
                   setSubscription(subscriptionMonth());
                   setNow(Date.now());
                   setModal(null);
                   setToast("Подписка активна. Все прогнозы и чаты открыты.");
                 }}
               >
-                Активировать без списания
+                Подключить подписку
                 <ArrowRight size={17} />
               </button>
             </div>

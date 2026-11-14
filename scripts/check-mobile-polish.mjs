@@ -78,13 +78,17 @@ try {
   await expect(page.locator(".story-glass-column")).toHaveCount(4);
   await pause(1700);
   await shot("final-story-3");
-  await page.getByRole("button", { name: "Пропустить", exact: true }).click();
+  await page.getByRole("button", { name: "Далее", exact: true }).click();
   await pause(500);
   await shot("final-welcome");
   const intro = await page.locator(".auth-intro").boundingBox();
   expect(intro.y + intro.height / 2).toBeGreaterThan(330);
   expect(intro.y + intro.height / 2).toBeLessThan(440);
   await page.getByRole("button", { name: /Смотреть без регистрации/ }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Закрыть", exact: true })
+    .click();
   await pause(500);
   const slider = page.locator(".event-slider").first();
   const track = slider.locator(".event-slider-track");
@@ -167,10 +171,15 @@ try {
       await shot(`${width}-${route.replaceAll("/", "-")}`);
     }
     await page.goto(base);
-    await page.getByRole("button", { name: "Демо · 18+", exact: true }).click();
+    await page
+      .getByRole("button", {
+        name: "Открыть знакомство с приложением",
+        exact: true,
+      })
+      .click();
     for (let i = 0; i < 4; i++) {
-      await page.getByRole("button", { name: `Сторис ${i + 1} из 4` }).click();
-      await expect(page.locator(".story-demo-note")).toBeInViewport();
+      if (i > 0)
+        await page.getByRole("button", { name: "Далее", exact: true }).click();
       await expect(
         page.getByRole("button", { name: "Далее", exact: true }),
       ).toBeInViewport();
@@ -187,7 +196,8 @@ try {
       "animation-name",
       "none",
     );
-    await page.keyboard.press("Escape");
+    for (let i = 0; i < 4; i++)
+      await page.getByRole("button", { name: "Далее", exact: true }).click();
   }
   const touchContext = await browser.newContext({
     viewport: { width: 390, height: 844 },
@@ -202,11 +212,14 @@ try {
   await expect(touchPage.locator(".story-orbit-node")).toHaveCount(6);
   await touchPage.touchscreen.tap(65, 530);
   await expect(touchPage.locator(".story-sport-card")).toHaveCount(3);
-  await touchPage
-    .getByRole("button", { name: "Пропустить", exact: true })
-    .tap();
+  for (let i = 0; i < 4; i++)
+    await touchPage.getByRole("button", { name: "Далее", exact: true }).tap();
   await touchPage
     .getByRole("button", { name: /Смотреть без регистрации/ })
+    .tap();
+  await touchPage
+    .getByRole("dialog")
+    .getByRole("button", { name: "Закрыть", exact: true })
     .tap();
   const touchViewport = touchPage.locator(".event-slider-viewport").first();
   const touchBounds = await touchViewport.boundingBox();

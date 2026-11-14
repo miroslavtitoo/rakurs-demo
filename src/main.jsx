@@ -12,7 +12,7 @@ class ErrorBoundary extends React.Component {
       <main className="error-screen">
         <h1>Вернёмся к игре.</h1>
         <p>
-          Не удалось открыть экран. Ваши демоматериалы сохранены в этом
+          Не удалось открыть экран. Ваши материалы сохранены в этом
           браузере.
         </p>
         <button
