@@ -86,7 +86,7 @@ Live / Pre-match без TOP. Процент карточки подписан ш
 
 Push в `main` запускает GitHub Actions: `npm ci`, `npm test`, `npm run build`, публикация всего `dist` в Pages. Используются уникальное имя artifact для каждого run/attempt и ожидание его регистрации. Маршруты — hash; при другом хостинге нужно раздавать assets/fonts/images вместе с index.html и учитывать base path Vite. Бот-токен для публикации не нужен, адрес в BotFather менять не требуется; после деплоя переоткрыть Mini App.
 
-v8.2 опубликована успешно: [Actions 43583807744](https://github.com/miroslavtitoo/rakurs-demo/actions/runs/43583807744), commit 11e4801 (feature 87336c4). v11 опубликована: commit `b57f7bf`, [Actions 43594149268](https://github.com/miroslavtitoo/rakurs-demo/actions/runs/43594149268). На публичной версии прошли полный E2E и test:polish (touch-сторис, 0→74, задержка/24ч таймер/reload, поиск при эмуляции клавиатуры, плавающая навигация и юридические ссылки); подробности в STATUS.md.
+v8.2 опубликована успешно: [Actions 43583807744](https://github.com/miroslavtitoo/rakurs-demo/actions/runs/43583807744), commit 11e4801 (feature 87336c4). v12 опубликована: commit `4a86059`, [Actions 43601572721](https://github.com/miroslavtitoo/rakurs-demo/actions/runs/43601572721). На публичной версии прошли вертикальная рулетка/результат/сроки/reload/сохранение призов и полный E2E35страниц/15диалогов. Бот и URL сохранены; для обновления полностью переоткрыть Mini App. Подробности в STATUS.md.
 
 ## План переноса и нагрузки — сервер 4 vCPU / ~8 ГБ / ~90 ГБ
 
