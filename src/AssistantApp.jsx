@@ -70,6 +70,7 @@ import "./pdfDesign.css";
 import "./mobilePolish.css";
 import "./rewards.css";
 import { assistantText } from "./presentation.js";
+import { FortuneWheel, PromoSheet, ReferralSheet } from "./BenefitsUI.jsx";
 import { isTelegramAccount, telegramAccount, requestTelegramContact } from "./telegramAuth.js";
 import {
   CoinButton,
@@ -83,8 +84,9 @@ import {
   rewardDay,
   rewardStatus,
   claimReward,
-  spendCoins,
-  REWARD_COST,
+  spinWheel,
+  applyPromo,
+  usePackageCoupon,
   packagePrice,
 } from "./rewards.js";
 
@@ -1185,7 +1187,7 @@ export default function AssistantApp() {
     authHint,
     contactPending,
     contactHint,
-    credits,
+    credits: credits + wallet.forecastRewards,
     outcomeCredits,
     balance,
     transactions,
@@ -1206,25 +1208,22 @@ export default function AssistantApp() {
       haptic();
       setToast(`+${amount} монет`);
     },
-    redeemCoins: (purpose) => {
-      if (!user) {
-        requireLogin({ type: "coinShop" });
-        return;
-      }
-      if (
-        purchaseBusy.current ||
-        wallet.balance < REWARD_COST ||
-        (purpose === "coupon" && wallet.coupon)
-      )
-        return;
+    spin: () => {
+      if (!user || purchaseBusy.current) return null;
+      const bytes = new Uint32Array(1);
+      crypto.getRandomValues(bytes);
+      const outcome = spinWheel(wallet, bytes[0] / 4294967296, now);
+      if (!outcome) return null;
       purchaseBusy.current = true;
-      setWallet((p) => spendCoins(p, purpose, now));
-      if (purpose === "forecast") {
-        setCredits((p) => p + 1);
-        setToast("Прогноз ваш. Выберите любой матч.");
-        go("/");
-      } else setToast("Скидка 30% активна для следующего пакета");
-      setModal(null);
+      setWallet(outcome.wallet);
+      haptic();
+      return outcome.result;
+    },
+    finishSpin: () => { purchaseBusy.current = false; haptic(); },
+    applyPromo: (code) => {
+      const result = applyPromo(wallet, code, now);
+      if (result.ok) setWallet(result.wallet);
+      return { ok: result.ok, message: result.message };
     },
     packageQuote: (p) => packagePrice(p, wallet),
     markNews: (id) => setReadNews((p) => (p.includes(id) ? p : [...p, id])),
@@ -1320,7 +1319,7 @@ export default function AssistantApp() {
       const quote = packagePrice(p, wallet);
       record("Пакет · " + p.count + " матчей", -quote.price);
       if (quote.discount)
-        setWallet((w) => ({ ...normalizeWallet(w), coupon: null }));
+        setWallet((w) => usePackageCoupon(w, quote.couponId));
       setToast("Пакет доступен в профиле");
     },
     access,
@@ -1363,11 +1362,13 @@ export default function AssistantApp() {
       return;
     }
     if (purchaseBusy.current || access(e.id)) return;
-    if (method === "coins" && wallet.balance < REWARD_COST) return;
-    if (method === "package" && credits <= 0) return;
+    if (!["rub", "package"].includes(method)) return;
+    if (method === "package" && credits + wallet.forecastRewards <= 0) return;
     purchaseBusy.current = true;
-    if (method === "coins") setWallet((p) => spendCoins(p, "forecast", now));
-    else if (method === "package") setCredits((p) => p - 1);
+    if (method === "package") {
+      if (wallet.forecastRewards > 0) setWallet((p) => ({ ...normalizeWallet(p), forecastRewards: normalizeWallet(p).forecastRewards - 1 }));
+      else setCredits((p) => p - 1);
+    }
     else record("Прогноз · " + e.home, -PRICE);
     setPurchases((prev) => (prev.includes(e.id) ? prev : [...prev, e.id]));
     setJustUnlocked(e.id);
@@ -1474,12 +1475,17 @@ export default function AssistantApp() {
           <PdfStories close={close} />
         ) : !user ? (
           <AuthScreen key="telegram-auth" app={app} />
-        ) : modal?.type === "rewards" || modal?.type === "coinShop" ? (
+        ) : modal?.type === "wheel" ? (
+          <FortuneWheel app={app} close={close} />
+        ) : modal?.type === "promo" ? (
+          <PromoSheet app={app} close={close} />
+        ) : modal?.type === "referral" ? (
+          <ReferralSheet app={app} close={close} />
+        ) : modal?.type === "rewards" ? (
           <RewardSheet
             key={modal.type}
             app={app}
             close={close}
-            shop={modal.type === "coinShop"}
           />
         ) : modal?.type === "newsStory" ? (
           <NewsStories app={app} index={modal.index} close={close} />

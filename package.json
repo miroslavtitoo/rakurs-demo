@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test tests/*.test.js",
+    "test:wheel": "node scripts/check-wheel-motion.mjs",
     "test:telegram": "node scripts/check-telegram-launch.mjs",
     "test:experience": "node scripts/check-rewards.mjs",
     "test:e2e": "node scripts/check-rewards.mjs",

@@ -958,3 +958,84 @@
 @media(max-height:640px) {
   .telegram-only-entry .telegram-entry-note { margin-top:10px; font-size:11px; }
 }
+
+.profile-benefits { margin:0 0 22px; }
+.profile-wheel-card { display:flex; align-items:center; gap:14px; width:100%; padding:20px; border:1px solid #b85df44a; border-radius:20px; background:radial-gradient(ellipse at 0 0,#5b2471,transparent 80%),#21152f; text-align:left; }
+.profile-wheel-card>span:nth-child(2) { flex:1; }
+.profile-wheel-card strong { display:block; color:#fff; font-size:16px; }
+.profile-wheel-card small { display:block; margin-top:6px; color:#cbb2dd; font-size:12px; }
+.benefit-icon { display:grid; place-items:center; width:50px; height:50px; flex-shrink:0; border-radius:16px; color:#f2d2ff; background:linear-gradient(140deg,#c83fff,#7421c9); box-shadow:0 6px 24px #a22ce33d; }
+.profile-benefit-links { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+.profile-benefit-links button { display:grid; grid-template-columns:1fr auto; gap:9px; padding:18px 14px; border:1px solid #ffffff0d; border-radius:17px; background:#151226; text-align:left; min-width:0; }
+.profile-benefit-links button>svg:first-child { color:#b663e8; grid-column:1 / -1; }
+.profile-benefit-links strong { font-size:13px; line-height:1.4; grid-column:1 / -1; }
+.profile-benefit-links small { color:#968ba9; font-size:11px; line-height:1.5; }
+.prize-inventory { display:flex; flex-wrap:wrap; gap:10px 16px; margin-top:12px; padding:16px; background:#2b193a; border-radius:16px; }
+.prize-inventory>span { display:flex; align-items:center; gap:8px; width:100%; color:#dec5ef; font-size:13px; }
+.prize-inventory strong { font-size:12px; font-weight:500; }
+.benefits-modal.m-modal { width:460px; padding:24px; max-height:92dvh; }
+.benefits-modal .m-modal-head { margin-bottom:20px; }
+.benefits-modal h1 { font-family:Oswald,sans-serif; font-size:32px; line-height:1.15; margin:0 0 12px; }
+.benefit-description,.wheel-heading p { color:#b0a4c1; font-size:13px; line-height:1.55; margin:0 0 20px; }
+.wheel-heading { text-align:center; }
+.wheel-heading h1 { font-size:30px; }
+.wheel-heading p { max-width:290px; margin:0 auto 15px; }
+.wheel-balance { display:flex; align-items:center; justify-content:center; gap:7px; font-size:18px; font-weight:600; margin:0 auto 20px; }
+.wheel-balance .coin { width:24px; height:24px; }
+.wheel-balance>span:last-child { font-size:12px; font-weight:400; color:#a79ab8; }
+.wheel-stage { --wheel-size:min(68vw,284px); width:var(--wheel-size); height:var(--wheel-size); position:relative; margin:0 auto 20px; }
+.fortune-disk { position:absolute; inset:0; border:7px solid #d5a1f4; border-radius:50%; background:conic-gradient(from -22.5deg,#68228f 0deg 45deg,#351d55 45deg 90deg,#9d32c1 90deg 135deg,#48216e 135deg 180deg,#68228f 180deg 225deg,#351d55 225deg 270deg,#9d32c1 270deg 315deg,#48216e 315deg 360deg); box-shadow:0 0 0 5px #61307f,0 0 44px #be39e23d,inset 0 0 0 4px #ffffff15; }
+.wheel-pointer { position:absolute; z-index:3; top:-9px; left:50%; width:0; height:0; margin-left:-12px; border-left:12px solid transparent; border-right:12px solid transparent; border-top:25px solid #ffe496; filter:drop-shadow(0 2px 4px #0008); }
+.wheel-segment-label { position:absolute; left:50%; top:50%; width:62px; height:48px; transform:translate(-50%,-50%) rotate(var(--segment-angle)) translateY(calc(var(--wheel-size) * -.34)); text-align:center; }
+.wheel-segment-label>span { display:flex; height:100%; flex-direction:column; align-items:center; justify-content:center; gap:4px;  }
+.wheel-segment-label strong { font-family:Oswald,sans-serif; font-size:15px; line-height:1.1; color:#fff4ff; }
+.wheel-segment-label .coin { width:20px; height:20px; }
+.wheel-segment-label svg { color:#efd1ff; }
+.wheel-hub { display:grid; place-items:center; position:absolute; width:62px; height:62px; left:50%; top:50%; transform:translate(-50%,-50%); border:4px solid #bd80e9; border-radius:50%; background:#251138; box-shadow:0 3px 15px #0006; }
+.wheel-hub img { width:34px; height:34px; }
+.wheel-result { display:flex; flex-direction:column; justify-content:center; gap:5px; min-height:70px; margin:0 0 16px; text-align:center; }
+.wheel-result small { font-size:11px; color:#b89cca; }
+.wheel-result strong { font-size:19px; color:#edd3ff; }
+.wheel-result span { font-size:12px; line-height:1.5; color:#ac9dbd; }
+.wheel-spin-button { width:100%; min-height:52px; }
+.wheel-earn { width:100%; margin-top:8px; font-size:12px; min-height:42px; }
+.wheel-rules { border-top:1px solid #ffffff0d; margin-top:16px; padding-top:14px; font-size:12px; color:#a89bb9; }
+.wheel-rules summary { cursor:pointer; color:#d5c4e3; min-height:30px; }
+.wheel-rules p { font-size:12px; line-height:1.7; }
+.wheel-rules ul { list-style:none; padding:0; margin:0; }
+.wheel-rules li { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:10px 0; }
+.wheel-rules li small { color:#84778f; }
+.benefit-large-icon { display:grid; place-items:center; width:64px; height:64px; border-radius:20px; background:#40204f; color:#dca3ff; margin-bottom:22px; }
+.promo-form label,.referral-label { display:block; color:#b4a4c4; font-size:12px; margin:0 0 10px; }
+.promo-form input,.referral-link { width:100%; min-height:54px; border:1px solid #6a427c; border-radius:14px; padding:14px; background:#0d0b1a; color:#f3e9ff; font-size:16px; outline-offset:4px; }
+.promo-form input { text-transform:uppercase; letter-spacing:1px; }
+.promo-form input::placeholder { text-transform:none; letter-spacing:0; }
+.promo-form>.m-button { width:100%; margin-top:20px; }
+.promo-error,.promo-success { display:flex; align-items:center; gap:8px; font-size:13px; line-height:1.5; margin-top:14px; }
+.promo-error { color:#ffabab; }
+.promo-success { color:#b7eacb; }
+.referral-link { font-size:12px; }
+.referral-copy { width:100%; margin-top:18px; gap:9px; }
+.referral-coming { padding:16px; margin:20px 0 0; background:#ffffff05; border-radius:14px; color:#a998b8; font-size:12px; line-height:1.6; }
+@media(max-width:480px) {
+  .benefits-modal.m-modal { width:100%; padding:20px; }
+  .benefits-modal .m-modal-head { margin-bottom:16px; }
+  .wheel-heading h1 { font-size:27px; }
+}
+@media(max-width:360px) {
+  .profile-wheel-card { padding:16px; gap:10px; }
+  .profile-wheel-card strong { font-size:14px; }
+  .profile-benefit-links strong { font-size:12px; }
+  .wheel-hub { width:52px; height:52px; }
+  .wheel-segment-label strong { font-size:13px; }
+  .wheel-segment-label { width:54px; }
+}
+
+@media(max-height:640px) {
+  .wheel-modal .wheel-heading { display:none; }
+  .wheel-modal .m-modal-head { margin-bottom:12px; }
+  .wheel-modal .wheel-stage { --wheel-size:min(58vw,220px); margin-bottom:12px; }
+  .wheel-modal .wheel-balance { margin-bottom:14px; }
+  .wheel-modal .wheel-result { min-height:56px; margin-bottom:12px; }
+  .wheel-modal .wheel-result strong { font-size:17px; }
+}

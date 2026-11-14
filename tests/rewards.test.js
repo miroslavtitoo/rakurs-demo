@@ -2,19 +2,25 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   DAILY_REWARDS,
-  REWARD_COST,
+  WEEKLY_REWARD,
+  SPIN_COST,
+  WHEEL_PRIZES,
+  normalizeWallet,
+  spinWheel,
+  applyPromo,
+  usePackageCoupon,
+  referralLink,
   emptyWallet,
   rewardDay,
   rewardStatus,
   claimReward,
-  spendCoins,
   packagePrice,
 } from "../src/rewards.js";
 const start = Date.parse("2026-11-14T09:00:00Z"),
   day = 86400000;
 test("Seven consecutive daily claims total 130; each date can be claimed once", () => {
   let w = emptyWallet;
-  assert.equal(REWARD_COST, 130);
+  assert.equal(WEEKLY_REWARD, 130);
   for (let i = 0; i < 7; i++) {
     assert.equal(rewardStatus(w, start + i * day).amount, DAILY_REWARDS[i]);
     w = claimReward(w, start + i * day);
@@ -39,23 +45,40 @@ test("Daily boundaries use Moscow time rather than UTC or browser local time", (
   const w = claimReward(emptyWallet, Date.parse("2026-11-14T20:59:59Z"));
   assert.equal(claimReward(w, Date.parse("2026-11-14T21:00:01Z")).balance, 25);
 });
-test("Forecast and coupon each cost one week; discount applies to a bundle only", () => {
-  const funded = { ...emptyWallet, balance: 130 };
-  const forecast = spendCoins(funded, "forecast", start);
-  assert.equal(forecast.balance, 0);
-  assert.equal(forecast.coupon, null);
-  const coupon = spendCoins(funded, "coupon", start);
-  assert.equal(coupon.balance, 0);
-  assert.equal(coupon.coupon.percent, 30);
-  assert.equal(packagePrice({ count: 3, price: 549 }, coupon).price, 384);
-  assert.equal(packagePrice({ count: 1, price: 199 }, coupon).price, 199);
-  assert.deepEqual(spendCoins({ ...coupon, balance: 130 }, "coupon"), {
-    ...coupon,
-    balance: 130,
-  });
-  assert.equal(
-    spendCoins({ ...emptyWallet, balance: 129 }, "forecast").balance,
-    129,
-  );
-  assert.equal(spendCoins(funded, "unknown").balance, 130);
+test("Wheel costs 10 once, selects every sector correctly and awards an inventory item", () => {
+  assert.equal(SPIN_COST, 10);
+  assert.equal(spinWheel({...emptyWallet,balance:9},0,start),null);
+  for(let i=0;i<WHEEL_PRIZES.length;i++) {
+    const {wallet:w,result} = spinWheel({...emptyWallet,balance:10},(i+.5)/8,start);
+    const p=WHEEL_PRIZES[i];
+    assert.equal(result.index,i);
+    assert.equal(w.balance,p.kind === "coins" ? p.amount : 0);
+    assert.equal(w.forecastRewards,p.kind === "forecast" ? 1 : 0);
+    assert.equal(w.coupons.length,p.kind === "coupon" ? 1 : 0);
+    assert.equal(w.spinCount,1);
+    assert.equal(w.spinHistory[0].id,result.id);
+  }
+  for(const random of [-1,1,NaN,Infinity]) assert.equal(spinWheel({...emptyWallet,balance:10},random,start),null);
+});
+test("Coupons are retained individually, best bundle discount is consumed once; legacy coupon survives", () => {
+  let w = normalizeWallet({balance:30,coupon:{percent:30}});
+  w=spinWheel(w,1.5/8,start).wallet;
+  assert.equal(w.coupons.length,2);
+  assert.equal(packagePrice({count:1,price:199},w).price,199);
+  const quote=packagePrice({count:3,price:549},w);
+  assert.equal(quote.price,384);
+  assert.equal(quote.discount,30);
+  w=usePackageCoupon(w,quote.couponId);
+  assert.equal(w.coupons.length,1);
+  assert.equal(packagePrice({count:3,price:549},w).discount,10);
+});
+test("Promo codes normalize, apply once and reject unknown/empty codes without altering balance", () => {
+  assert.equal(applyPromo(emptyWallet," ").ok,false);
+  assert.equal(applyPromo(emptyWallet,"unknown").ok,false);
+  const result=applyPromo(emptyWallet," diverge10 ",start);
+  assert.equal(result.ok,true);
+  assert.equal(result.wallet.balance,10);
+  assert.equal(applyPromo(result.wallet,"DIVERGE10",start).ok,false);
+  assert.equal(referralLink(123456),"https://t.me/demobett_bot?startapp=ref_123456");
+  assert.equal(referralLink(null),null);
 });

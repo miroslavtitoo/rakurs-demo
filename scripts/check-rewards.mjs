@@ -10,12 +10,12 @@ const page = await browser.newPage({
   }),
   errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
-await fs.mkdir("tmp/rewards-v9", { recursive: true });
+await fs.mkdir("tmp/benefits-v10", { recursive: true });
 const initial = Date.parse("2026-11-14T09:00:00Z");
 const shot = async (name) => {
   await page.waitForTimeout(300);
   await page.screenshot({
-    path: `tmp/rewards-v9/${name}.png`,
+    path: `tmp/benefits-v10/${name}.png`,
     style: ".m-toast{visibility:hidden!important}",
   });
 };
@@ -171,13 +171,22 @@ try {
     "Оформление заказа",
   );
   await expect(page.locator(".pdf-stories")).toHaveCount(0);
-  await page.getByRole("button", { name: "Монеты", exact: true }).click();
-  await shot("coin-checkout");
-  await page
-    .getByRole("button", { name: "Открыть за монеты", exact: true })
-    .click();
+  await expect(page.getByRole("button", {name:"Монеты",exact:true})).toHaveCount(0);
+  await expect(page.getByRole("button", {name:"Открыть за монеты",exact:true})).toHaveCount(0);
+  await close();
+  await route("/profile");
+  await page.locator(".profile-wheel-card").click();
+  await page.evaluate(()=>{crypto.getRandomValues=(array)=>{array[0]=Math.floor(3.5/8*4294967296);return array;};});
+  await page.getByRole("button",{name:"Крутить за 10 монет",exact:true}).click();
+  await expect(page.locator(".wheel-result")).toContainText("Бесплатный прогноз");
+  await expect(page.locator(".wheel-balance")).toContainText("120");
+  await shot("forecast-prize");
+  await close();
+  await route("/match/fox-metro");
+  await page.getByRole("button", { name:/Купить прогноз/ }).click();
+  await page.getByRole("button",{name:"Использовать анализ",exact:true}).click();
   await expect(page.locator(".analysis-dashboard")).toBeVisible();
-  await expect(page.locator(".coin-balance-button")).toContainText("0");
+  await expect(page.locator(".coin-balance-button")).toContainText("120");
   await page.reload();
   await expect(page.locator(".analysis-dashboard")).toBeVisible();
   await clean();
@@ -201,20 +210,15 @@ try {
   );
   await clean();
   await close();
-  // Seed a second earned week to exercise the independent coupon redemption path.
-  await page.evaluate(() => {
-    const key = "rakurs:rewardsWallet",
-      w = JSON.parse(localStorage.getItem(key));
-    localStorage.setItem(key, JSON.stringify({ ...w, balance: 130 }));
-  });
+  // A coupon is a wheel prize, not a direct exchange for coins.
+  await route("/profile");
+  await page.locator(".profile-wheel-card").click();
+  await page.evaluate(()=>{crypto.getRandomValues=(array)=>{array[0]=Math.floor(7.5/8*4294967296);return array;};});
+  await page.getByRole("button",{name:"Крутить за 10 монет",exact:true}).click();
+  await expect(page.locator(".wheel-result")).toContainText("Скидка 30%");
+  await shot("coupon-prize");
+  await close();
   await page.reload();
-  await page.locator(".coin-balance-button").click();
-  await page.getByRole("button", { name: /На что потратить/ }).click();
-  await shot("coin-shop");
-  await page
-    .getByRole("button", { name: "130 монет · получить скидку", exact: true })
-    .click();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
   await route("/profile");
   await expect(page.locator(".profile-ident")).toContainText("Алина Ветрова");
   await page
@@ -230,7 +234,7 @@ try {
     transactions: JSON.parse(localStorage.getItem("rakurs:demoTransactions")),
     outcome: JSON.parse(localStorage.getItem("rakurs:outcomeCredits")),
   }));
-  expect(state.wallet.coupon).toBeNull();
+  expect(state.wallet.coupons).toHaveLength(0);
   expect(state.transactions[0].amount).toBe(-20);
   expect(state.outcome).toBe(3);
   await clean();
@@ -240,24 +244,12 @@ try {
     .click();
   await expect(page.locator(".probability-panel")).toBeVisible();
   await expect(page.locator(".evidence-panel")).toHaveCount(0);
-  await page.evaluate(() => {
-    const k = "rakurs:rewardsWallet",
-      w = JSON.parse(localStorage.getItem(k));
-    localStorage.setItem(k, JSON.stringify({ ...w, balance: 130 }));
-  });
-  await page.reload();
-  await page.locator(".coin-balance-button").click();
-  await page.getByRole("button", { name: /На что потратить/ }).click();
-  await page
-    .getByRole("button", { name: "130 монет · забрать прогноз", exact: true })
-    .click();
-  await expect
-    .poll(() =>
-      page.evaluate(() =>
-        JSON.parse(localStorage.getItem("rakurs:analysisCredits")),
-      ),
-    )
-    .toBe(1);
+  await route("/profile");
+  await page.locator(".profile-wheel-card").click();
+  await page.evaluate(()=>{crypto.getRandomValues=(array)=>{array[0]=Math.floor(3.5/8*4294967296);return array;};});
+  await page.getByRole("button",{name:"Крутить за 10 монет",exact:true}).click();
+  await expect(page.locator(".wheel-result")).toContainText("Бесплатный прогноз");
+  await close();
   await route("/match/ember-frost");
   await page.getByRole("button", { name: /Купить прогноз/ }).click();
   await page
@@ -267,10 +259,33 @@ try {
   await expect
     .poll(() =>
       page.evaluate(() =>
-        JSON.parse(localStorage.getItem("rakurs:analysisCredits")),
+        JSON.parse(localStorage.getItem("rakurs:rewardsWallet")).forecastRewards,
       ),
     )
     .toBe(0);
+  await route("/profile");
+  await page.getByRole("button",{name:/Промокод.*Активировать бонус/}).click();
+  await page.getByRole("textbox",{name:"Промокод",exact:true}).fill("wrong");
+  await page.getByRole("button",{name:"Активировать",exact:true}).click();
+  await expect(page.getByRole("dialog").getByRole("status")).toContainText("Промокод не найден");
+  await page.getByRole("textbox",{name:"Промокод",exact:true}).fill(" diverge10 ");
+  await page.getByRole("button",{name:"Активировать",exact:true}).click();
+  await expect(page.getByRole("dialog").getByRole("status")).toContainText("Промокод активирован");
+  await shot("promo-success");
+  await close();
+  await page.getByRole("button",{name:/Промокод.*Активировать бонус/}).click();
+  await page.getByRole("textbox",{name:"Промокод",exact:true}).fill("DIVERGE10");
+  await page.getByRole("button",{name:"Активировать",exact:true}).click();
+  await expect(page.getByRole("dialog").getByRole("status")).toContainText("уже активирован");
+  await close();
+  await page.getByRole("button",{name:/Пригласить друзей.*Ваша ссылка/}).click();
+  await expect(page.getByLabel("Ваша ссылка",{exact:true})).toHaveValue("https://t.me/demobett_bot?startapp=ref_123456");
+  await page.evaluate(()=>{Object.defineProperty(navigator,"clipboard",{configurable:true,value:{writeText:async(text)=>{window.copiedReferral=text;}}});});
+  await page.getByRole("button",{name:"Скопировать ссылку",exact:true}).click();
+  await expect(page.getByRole("button",{name:"Ссылка скопирована",exact:true})).toBeVisible();
+  expect(await page.evaluate(()=>window.copiedReferral)).toContain("ref_123456");
+  await shot("referral");
+  await close();
   await route("/subscription");
   await page
     .getByRole("button", { name: "Попробовать подписку", exact: true })
@@ -308,6 +323,14 @@ try {
         ),
       ).toBe(true);
       await shot(`${width}-${path.replaceAll("/", "-")}`);
+    }
+    await route("/profile");
+    for (const selector of [".profile-wheel-card", ".profile-benefit-links button:first-child", ".profile-benefit-links button:last-child"]) {
+      await page.locator(selector).click();
+      await clean();
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+      await shot(`${width}-benefit-${selector.includes("wheel") ? "wheel" : selector.includes("first") ? "promo" : "referral"}`);
+      await close();
     }
     if (width < 800) {
       await page.locator(".coin-balance-button").click();
@@ -354,7 +377,7 @@ try {
   await expect(page.locator(".analysis-dashboard")).toBeVisible();
   expect(errors).toEqual([]);
   console.log(
-    "PASS: mandatory onboarding, Telegram-only gate/contact consent/legacy migration, daily popup/claims/week=130, coin purchase, 30% bundle coupon, news read states/replay, no retired labels, subscription/chat/factors, logout/deep-link gate and persistence and 35 responsive routes.",
+    "PASS: mandatory onboarding, Telegram-only gate/contact consent/legacy migration, daily popup/claims/week=130, 10-coin wheel/forecast and coupon prizes, promo/duplicate/referral copy, news read states/replay, no retired labels, subscription/chat/factors, logout/deep-link gate and persistence and 35 responsive routes + 15 benefit modals.",
   );
 } finally {
   await browser.close();

@@ -11,8 +11,7 @@ import {
 import { Modal } from "./AssistantUI.jsx";
 import {
   DAILY_REWARDS,
-  REWARD_COST,
-  BUNDLE_DISCOUNT,
+  SPIN_COST,
   rewardStatus,
 } from "./rewards.js";
 export function Coin({ className = "" }) {
@@ -43,7 +42,7 @@ export function CoinButton({ app }) {
     </button>
   );
 }
-export function RewardSheet({ app, close, shop = false }) {
+export function RewardSheet({ app, close }) {
   const dragStart = useRef(0);
   const status = rewardStatus(app.wallet, app.now),
     [burst, B] = useState(false),
@@ -56,7 +55,7 @@ export function RewardSheet({ app, close, shop = false }) {
   };
   return (
     <Modal
-      title={shop ? "Потратить монеты" : "Монетки за вход"}
+      title="Монетки за вход"
       close={close}
       kind="reward-sheet dark-modal"
     >
@@ -76,20 +75,9 @@ export function RewardSheet({ app, close, shop = false }) {
           <span />
         </button>
         <div className="reward-title-line">
-          <h1>{shop ? "Ваши монеты" : "Монетки за вход"}</h1>
-          {shop && (
-            <span className="reward-wallet">
-              <Coin />
-              {app.wallet.balance}
-            </span>
-          )}
+          <h1>Монетки за вход</h1>
         </div>
-        <p className="reward-intro">
-          {shop
-            ? "130 монет — один прогноз или скидка на пакет. Выбирайте, что пригодится сейчас."
-            : "Заходите каждый день, чтобы собрать как можно больше монеток за неделю"}
-        </p>
-        {!shop ? (
+        <p className="reward-intro">Заходите каждый день, чтобы собрать как можно больше монеток за неделю</p>
           <>
             <div className="reward-days">
               {DAILY_REWARDS.map((n, i) => {
@@ -156,9 +144,9 @@ export function RewardSheet({ app, close, shop = false }) {
             </button>
             <button
               className="reward-shop-link"
-              onClick={() => app.open({ type: "coinShop" })}
+              onClick={() => app.open({ type: "wheel" })}
             >
-              На что потратить {app.wallet.balance} монет{" "}
+              Колесо фортуны · {SPIN_COST} монет за вращение{" "}
               <ArrowRight size={15} />
             </button>
             {burst && !reduced && (
@@ -181,55 +169,18 @@ export function RewardSheet({ app, close, shop = false }) {
               </div>
             )}
           </>
-        ) : (
-          <>
-            <div className="coin-redeem-card">
-              <div className="coin-redeem-icon">
-                <Sparkles />
-              </div>
-              <h2>Любой прогноз</h2>
-              <p>
-                Полная аналитика одного матча и чат с AI. Выберите событие после
-                обмена.
-              </p>
-              <button
-                className="m-button"
-                disabled={app.wallet.balance < REWARD_COST}
-                onClick={() => app.redeemCoins("forecast")}
-              >
-                <Coin /> {REWARD_COST} монет · забрать прогноз
-              </button>
-            </div>
-            <div className="coin-redeem-card">
-              <div className="coin-redeem-icon">−{BUNDLE_DISCOUNT}%</div>
-              <h2>Скидка на пакет</h2>
-              <p>
-                На один пакет от двух прогнозов. Скидка применится при
-                оформлении заказа.
-              </p>
-              <button
-                className="m-button"
-                disabled={
-                  app.wallet.balance < REWARD_COST || !!app.wallet.coupon
-                }
-                onClick={() => app.redeemCoins("coupon")}
-              >
-                {app.wallet.coupon
-                  ? "Скидка уже активна"
-                  : `${REWARD_COST} монет · получить скидку`}
-              </button>
-            </div>
-            <p className="reward-hint">
-              За 7 дней подряд вы получите {REWARD_COST} монет. После пропуска
-              серия начинается заново, а накопленные монеты сохраняются.
-            </p>
-          </>
-        )}
       </div>
     </Modal>
   );
 }
 export const NEWS_ITEMS = [
+  {
+    id: "wheel-v1",
+    label: "Акции и бонусы",
+    image: "bonus",
+    title: "Монеты открывают новые призы",
+    copy: "Собирайте монеты за вход и вращайте колесо фортуны. Одно вращение — 10 монет. Внутри — скидки, прогнозы и новые монеты.",
+  },
   {
     id: "filters-v1",
     label: "Новости",
@@ -244,13 +195,7 @@ export const NEWS_ITEMS = [
     title: "Смотрите глубже",
     copy: "Сравнивайте форму, очные встречи и составы. Нажмите на фактор, чтобы увидеть его вклад в прогноз.",
   },
-  {
-    id: "coins-v1",
-    label: "Акции и бонусы",
-    image: "bonus",
-    title: "Заходите за наградой",
-    copy: "Соберите 130 монет за семь дней подряд. Обменяйте их на любой прогноз или скидку 30% на пакет.",
-  },
+
   {
     id: "sport-v1",
     label: "Ритм спорта",

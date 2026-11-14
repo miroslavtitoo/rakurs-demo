@@ -31,7 +31,7 @@ import TeamMark from "./TeamMark.jsx";
 import StoryArt from "./StoryArt.jsx";
 import EventSlider from "./EventSlider.jsx";
 import { StoryRail, CoinButton } from "./RewardsUI.jsx";
-import { REWARD_COST } from "./rewards.js";
+import { ProfileBenefits } from "./BenefitsUI.jsx";
 import { assistantText, operationLabel } from "./presentation.js";
 const img = (n) => `./images/diverge/${n}.webp`;
 export function DivergeLogo({ onClick }) {
@@ -725,6 +725,7 @@ export function Profile({ app }) {
           Ежедневная награда <ChevronRight size={17} />
         </span>
       </button>
+      <ProfileBenefits app={app} />
       <section className="telegram-account-card">
         <div className="telegram-account-heading"><Send size={20} /><strong>Аккаунт Telegram</strong><Check size={17} /></div>
         <p>Номер телефона можно передать через Telegram. Это необязательно для входа.</p>
@@ -964,7 +965,7 @@ export function ExtraModal({ modal, app, close }) {
               <br />
               знакомство
             </h1>
-            <p>Копите монеты за ежедневный вход и выбирайте интересный матч.</p>
+            <p>Копите монеты за ежедневный вход и вращайте колесо фортуны.</p>
             <button
               className="m-button"
               onClick={() => {
@@ -1088,7 +1089,7 @@ export function ExtraModal({ modal, app, close }) {
               <span>{app.packageQuote(modal.package).price} рублей</span>
             </div>
             {app.packageQuote(modal.package).discount > 0 && (
-              <p className="coupon-applied">Применена скидка 30% за монеты</p>
+              <p className="coupon-applied">Применена скидка {app.packageQuote(modal.package).discount}% по купону</p>
             )}
             <button
               className="m-button"
@@ -1374,120 +1375,26 @@ export function ExtraModal({ modal, app, close }) {
 
 export function EventOrder({ event: e, app, close, confirm }) {
   const [currency, C] = useState(app.credits > 0 ? "package" : "rub"),
-    [cardIndex, CI] = useState(
-      Math.max(
-        0,
-        app.cards.findIndex((c) => c.primary),
-      ),
-    );
-  const enough = currency !== "coins" || app.wallet.balance >= REWARD_COST;
+    [cardIndex, CI] = useState(Math.max(0, app.cards.findIndex((c) => c.primary)));
   return (
-    <Modal
-      title="Оформление заказа"
-      close={close}
-      kind="white-sheet event-order"
-    >
+    <Modal title="Оформление заказа" close={close} kind="white-sheet event-order">
       <div className="sheet-body">
-        <h1>
-          Оформление
-          <br />
-          заказа
-        </h1>
+        <h1>Оформление<br />заказа</h1>
         <p className="field-title">Ваш заказ</p>
         <div className="order-product">
           <img src={img("trophies")} alt="" />
-          <div>
-            <h2>Полная аналитика матча</h2>
-            <span>
-              {e.home} — {e.away}
-            </span>
-          </div>
+          <div><h2>Полная аналитика</h2><span>{e.home} — {e.away}</span></div>
+          <span>{currency === "package" ? "0" : "199"} ₽</span>
         </div>
         <p className="field-title">Способ оплаты</p>
-        <div className="currency-tabs">
-          {app.credits > 0 && (
-            <button
-              aria-pressed={currency === "package"}
-              onClick={() => C("package")}
-            >
-              Из доступа
-            </button>
-          )}
-          <button aria-pressed={currency === "rub"} onClick={() => C("rub")}>
-            Рубли
-          </button>
-          <button
-            aria-pressed={currency === "coins"}
-            onClick={() => C("coins")}
-          >
-            Монеты
-          </button>
-        </div>
-        {currency === "coins" ? (
-          <div className="order-coin-summary">
-            <strong>{REWARD_COST} монет</strong>
-            <span>У вас {app.wallet.balance} монет</span>
-          </div>
-        ) : currency === "package" ? (
-          <p className="auth-hint">
-            Доступно анализов: {app.credits}. Будет использован один.
-          </p>
-        ) : (
-          <div className="demo-methods">
-            {app.cards.map((c, i) => (
-              <button
-                key={c.id}
-                aria-pressed={i === cardIndex}
-                onClick={() => CI(i)}
-              >
-                <b>{c.brand}</b>
-                <span>
-                  {c.brand} · {c.last}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="order-total">
-          <span>Итого</span>
-          <strong>
-            {currency === "coins"
-              ? `${REWARD_COST} монет`
-              : currency === "package"
-                ? "0 рублей"
-                : "199 рублей"}
-          </strong>
-        </div>
-        <button
-          className="m-button confirm-purchase"
-          disabled={!enough}
-          onClick={() => confirm(currency)}
-        >
-          {!enough
-            ? `Нужно ещё ${REWARD_COST - app.wallet.balance} монет`
-            : currency === "coins"
-              ? "Открыть за монеты"
-              : currency === "package"
-                ? "Использовать анализ"
-                : "Оплатить 199 ₽"}
-        </button>
-        {!enough && (
-          <button
-            className="text-button"
-            onClick={() => app.open({ type: "rewards" })}
-          >
-            Как накопить монеты
-          </button>
-        )}
-        <button
-          className="text-button"
-          onClick={() => {
-            close();
-            app.go("/subscription");
-          }}
-        >
-          Все события за 1 000 ₽ / месяц
-        </button>
+        {app.credits > 0 && <div className="currency-tabs">
+          <button aria-pressed={currency === "package"} onClick={() => C("package")}>Из доступа</button>
+          <button aria-pressed={currency === "rub"} onClick={() => C("rub")}>Рубли</button>
+        </div>}
+        {currency === "package" ? <p className="auth-hint">Доступно анализов: {app.credits}. Будет использован один.</p> : <div className="demo-methods">{app.cards.map((card,i) => <button key={card.id} aria-pressed={i === cardIndex} onClick={() => CI(i)}><b>{card.brand}</b><span>{card.brand} · {card.last}</span></button>)}</div>}
+        <div className="order-total"><span>Итого</span><strong>{currency === "package" ? "0" : "199"} рублей</strong></div>
+        <button className="m-button confirm-purchase" onClick={() => confirm(currency)}>{currency === "package" ? "Использовать анализ" : "Оплатить 199 ₽"}</button>
+        <button className="text-button" onClick={() => { close(); app.go("/subscription"); }}>Все события за 1 000 ₽ / месяц</button>
       </div>
     </Modal>
   );
