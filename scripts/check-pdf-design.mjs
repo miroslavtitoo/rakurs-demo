@@ -86,9 +86,8 @@ try {
   await page.getByRole("button", { name: "Войти", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveAttribute(
     "aria-label",
-    "Знакомство с Diverge",
+    "Оформление заказа",
   );
-  await page.getByRole("button", { name: "Пропустить", exact: true }).click();
   await shot("checkout");
   await page
     .getByRole("button", { name: "Использовать анализ из пакета" })

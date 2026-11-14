@@ -12,7 +12,8 @@
     "test:experience": "node scripts/check-pdf-design.mjs",
     "test:e2e": "node scripts/check-pdf-design.mjs",
     "test:design": "node scripts/check-pdf-motion.mjs",
-    "test:mobile": "node scripts/check-mobile-polish.mjs"
+    "test:mobile": "node scripts/check-mobile-polish.mjs",
+    "test:telegram-window": "node scripts/check-telegram-window.mjs"
   },
   "dependencies": {
     "@fontsource/dm-sans": "^5.3.0",

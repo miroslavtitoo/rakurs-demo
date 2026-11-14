@@ -91,7 +91,7 @@ function Modal({ title, close, children, kind = "" }) {
     <motion.div
       className="m-backdrop"
       style={{ pointerEvents: isPresent ? "auto" : "none" }}
-      initial={reduced ? false : { opacity: 0 }}
+      initial={reduced || immersive ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: reduced ? 0 : 0.24 }}

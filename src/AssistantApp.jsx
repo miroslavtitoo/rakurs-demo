@@ -62,7 +62,7 @@ import {
 } from "./assistantData.js";
 import { routeFromHash } from "./routing.js";
 import { marketRoute } from "./marketData.js";
-import { initTelegram, haptic } from "./telegram.js";
+import { initTelegram, haptic, isTelegramWebApp } from "./telegram.js";
 import "./market.css";
 import "./assistant.css";
 import "./assistantDesign.css";
@@ -1081,7 +1081,9 @@ export default function AssistantApp() {
     { id: "visa", brand: "VISA", last: "1521", primary: false },
   ]);
   const [pending, setPending] = useState(null);
-  const [modal, setModal] = useState(() => (seen ? null : { type: "stories" }));
+  const [modal, setModal] = useState(() =>
+    seen === true ? null : { type: "stories" },
+  );
   const [toast, setToast] = useState("");
   const [justUnlocked, setJustUnlocked] = useState(null);
   const [now, setNow] = useState(Date.now());
@@ -1111,8 +1113,11 @@ export default function AssistantApp() {
   };
   function close() {
     if (modal?.type === "stories") {
+      try {
+        localStorage.setItem("rakurs:pdfOnboardingSeen", "true");
+      } catch {}
       setSeen(true);
-      setModal(modal.after || (!user && !seen ? { type: "auth" } : null));
+      setModal(!user && seen !== true ? { type: "auth" } : null);
       return;
     }
     if (modal?.type === "auth") setPending(null);
@@ -1120,7 +1125,7 @@ export default function AssistantApp() {
   }
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
-    if (!tg?.initData || !tg.isVersionAtLeast?.("6.1")) return;
+    if (!isTelegramWebApp(tg) || !tg.isVersionAtLeast?.("6.1")) return;
     const back = () => (modal ? close() : go("/"));
     if (route !== "/" || modal) tg.BackButton.show();
     else tg.BackButton.hide();
@@ -1172,10 +1177,7 @@ export default function AssistantApp() {
         setGiftClaimed(true);
         setCredits((p) => p + 2);
       }
-      setModal({
-        type: "stories",
-        after: pending || (fresh ? { type: "gift" } : null),
-      });
+      setModal(pending || (fresh ? { type: "gift" } : null));
       setPending(null);
       setToast("");
     },

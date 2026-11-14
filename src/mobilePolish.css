@@ -1577,3 +1577,81 @@
     font-size: 11px;
   }
 }
+/* Native fullscreen insets are supplied by Telegram, not simulated by CSS. */
+:root {
+  --tg-left: 0px;
+  --tg-right: 0px;
+}
+.m-backdrop:has(.pdf-stories) {
+  z-index: 300;
+  background: #080b20;
+  backdrop-filter: none;
+}
+@media (max-width: 760px) {
+  .market-header {
+    padding-top: max(env(safe-area-inset-top), var(--tg-top));
+  }
+  .market-header > div {
+    padding-left: max(var(--page-gutter), var(--tg-left));
+    padding-right: max(var(--page-gutter), var(--tg-right));
+  }
+  .bottom-nav {
+    padding-bottom: max(17px, env(safe-area-inset-bottom), var(--tg-bottom));
+  }
+  .m-backdrop {
+    padding-top: var(--tg-top);
+    padding-bottom: var(--tg-bottom);
+  }
+  .m-modal {
+    max-height: calc(100dvh - var(--tg-top) - var(--tg-bottom));
+  }
+  .dark-modal.extra-modal {
+    min-height: calc(100dvh - var(--tg-top) - var(--tg-bottom));
+  }
+  .m-backdrop:has(.pdf-stories, .auth-modal, .event-chat-modal) {
+    padding: 0;
+  }
+  .m-modal.pdf-stories,
+  .m-modal.auth-modal,
+  .m-modal.event-chat-modal {
+    height: 100dvh;
+    max-height: 100dvh;
+    padding-bottom: 0;
+  }
+  .pdf-story.animated-story {
+    padding-top: calc(28px + max(env(safe-area-inset-top), var(--tg-top)));
+    padding-bottom: max(18px, env(safe-area-inset-bottom), var(--tg-bottom));
+  }
+  .pdf-stories .m-modal-head,
+  .auth-modal .m-modal-head {
+    top: calc(24px + max(env(safe-area-inset-top), var(--tg-top)));
+  }
+  .animated-story .story-pause {
+    top: calc(28px + max(env(safe-area-inset-top), var(--tg-top)));
+  }
+  .auth-screen,
+  .auth-screen:has(.auth-intro) {
+    padding-top: calc(32px + max(env(safe-area-inset-top), var(--tg-top)));
+    padding-bottom: max(18px, env(safe-area-inset-bottom), var(--tg-bottom));
+  }
+  .event-chat-modal .m-modal-head {
+    padding-top: calc(16px + var(--tg-top));
+  }
+  .event-chat-composer {
+    padding-bottom: max(16px, env(safe-area-inset-bottom), var(--tg-bottom));
+  }
+}
+.live-story-art {
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (max-height: 740px) {
+  html[data-tg-fullscreen="true"] .live-story-art {
+    --art-scale: 0.66;
+  }
+}
+@media (max-height: 600px) {
+  html[data-tg-fullscreen="true"] .live-story-art {
+    --art-scale: 0.53;
+  }
+}
