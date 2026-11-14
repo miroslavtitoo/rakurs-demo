@@ -54,7 +54,7 @@ node scripts/check-build.mjs
 
 Push в `main` запускает GitHub Actions: `npm ci`, `npm test`, `npm run build`, публикация всего `dist` в Pages. Используются уникальное имя artifact для каждого run/attempt и ожидание его регистрации. Маршруты — hash; при другом хостинге нужно раздавать assets/fonts/images вместе с index.html и учитывать base path Vite. Бот-токен для публикации не нужен, адрес в BotFather менять не требуется; после деплоя переоткрыть Mini App.
 
-v8.2 опубликована успешно: [Actions 43583807744](https://github.com/miroslavtitoo/rakurs-demo/actions/runs/43583807744), commit 11e4801 (feature 87336c4). Публикация v9 будет отмечена в STATUS.md после проверки публичной версии.
+v8.2 опубликована успешно: [Actions 43583807744](https://github.com/miroslavtitoo/rakurs-demo/actions/runs/43583807744), commit 11e4801 (feature 87336c4). v9 опубликована: commit `8f0d86b`, [Actions 43587603977](https://github.com/miroslavtitoo/rakurs-demo/actions/runs/43587603977). Публичные E2E, Telegram fullscreen и обычная анимация награды проверены; подробности в STATUS.md.
 
 ## Перед настоящим релизом
 
