@@ -77,8 +77,6 @@ export function FortuneWheel({ app, close }) {
         {spinning ? "Вращаем…" : app.wallet.balance < SPIN_COST ? `Нужно ещё ${SPIN_COST - app.wallet.balance} монет` : `Крутить за ${SPIN_COST} монет`}
       </button>
       {!spinning && app.wallet.balance < SPIN_COST && <button className="text-button wheel-earn" onClick={() => app.open({ type: "rewards" })}>Получить монеты за вход</button>}
-      <details className="wheel-rules"><summary>Призы и правила</summary><p>Каждый из 8 секторов имеет одинаковый шанс — 12,5%. Сектора «5 монет» два, общий шанс этого приза — 25%. Купоны действуют на один пакет от двух прогнозов, не складываются; сначала используется самая большая скидка. Бесплатный прогноз открывает анализ одного выбранного матча.</p></details>
-      {app.wallet.spinHistory.length > 0 && <details className="wheel-rules"><summary>Последние призы</summary><ul>{app.wallet.spinHistory.slice(0, 5).map((item) => <li key={item.id}><span>{item.prize.label}</span><small>{new Date(item.date).toLocaleDateString("ru-RU")}</small></li>)}</ul></details>}
     </Modal>
   );
 }

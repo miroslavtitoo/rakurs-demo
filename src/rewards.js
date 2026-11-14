@@ -17,6 +17,7 @@ export const emptyWallet = {
   balance: 0,
   streak: 0,
   lastClaimDay: null,
+  lastClaimAt: null,
   lastShownDay: null,
   coupon: null,
   coupons: [],
@@ -37,10 +38,6 @@ export function rewardDay(now = Date.now()) {
     .map((k) => parts.find((p) => p.type === k).value)
     .join("-");
 }
-const ordinal = (day) =>
-  /^\d{4}-\d{2}-\d{2}$/.test(day || "")
-    ? Date.parse(day + "T00:00:00Z") / 86400000
-    : NaN;
 export function normalizeWallet(value) {
   const w = value && typeof value === "object" ? value : {};
   return {
@@ -60,22 +57,21 @@ export function normalizeWallet(value) {
     usedPromoCodes: Array.isArray(w.usedPromoCodes) ? w.usedPromoCodes : [],
   };
 }
+export const REWARD_INTERVAL = 24 * 60 * 60 * 1000;
 export function rewardStatus(value, now = Date.now()) {
-  const w = normalizeWallet(value),
-    day = rewardDay(now),
-    gap = ordinal(day) - ordinal(w.lastClaimDay),
-    claimed = gap === 0;
-  const continuous = gap === 0 || gap === 1;
-  const streak = continuous ? w.streak : 0;
-  return {
-    day,
-    claimed,
-    streak,
-    index: streak % 7,
-    canClaim: !claimed && !(gap < 0),
-    amount: DAILY_REWARDS[streak % 7],
-    shouldShow: w.lastShownDay !== day,
-  };
+  const w = normalizeWallet(value), day = rewardDay(now);
+  // Legacy dates migrate to Moscow midnight; new claims retain their exact time.
+  const legacyAt = /^\d{4}-\d{2}-\d{2}$/.test(w.lastClaimDay || "") ? Date.parse(w.lastClaimDay + "T00:00:00+03:00") : NaN;
+  const lastAt = Number.isFinite(w.lastClaimAt) && w.lastClaimAt > 0 ? w.lastClaimAt : legacyAt;
+  const hasClaim = Number.isFinite(lastAt), elapsed = now - lastAt;
+  const nextAt = hasClaim ? lastAt + REWARD_INTERVAL : now;
+  const canClaim = !hasClaim || now >= nextAt;
+  const streak = hasClaim && elapsed < 2 * REWARD_INTERVAL ? w.streak : 0;
+  return { day, claimed: !canClaim, canClaim, streak, index: streak % 7, amount: DAILY_REWARDS[streak % 7], nextAt, remaining: Math.max(0, nextAt - now), shouldShow: w.lastShownDay !== day };
+}
+export function rewardCountdown(remaining) {
+  const minutes = Math.max(0, Math.ceil(remaining / 60000));
+  return `${String(Math.floor(minutes / 60)).padStart(2,"0")}:${String(minutes % 60).padStart(2,"0")}`;
 }
 export function claimReward(value, now = Date.now()) {
   const w = normalizeWallet(value),
@@ -86,6 +82,7 @@ export function claimReward(value, now = Date.now()) {
     balance: w.balance + s.amount,
     streak: s.streak + 1,
     lastClaimDay: s.day,
+    lastClaimAt: now,
     history: [
       { type: "daily", amount: s.amount, day: s.day },
       ...w.history,

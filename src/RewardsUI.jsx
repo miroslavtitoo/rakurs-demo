@@ -9,10 +9,12 @@ import {
   Send,
 } from "lucide-react";
 import { Modal } from "./AssistantUI.jsx";
+import { useStoryGestures } from "./storyGestures.js";
 import {
   DAILY_REWARDS,
   SPIN_COST,
   rewardStatus,
+  rewardCountdown,
 } from "./rewards.js";
 export function Coin({ className = "" }) {
   return (
@@ -44,7 +46,10 @@ export function CoinButton({ app }) {
 }
 export function RewardSheet({ app, close }) {
   const dragStart = useRef(0);
-  const status = rewardStatus(app.wallet, app.now),
+  const [clock, setClock] = useState(app.now);
+  useEffect(() => setClock(app.now), [app.now]);
+  useEffect(() => { const timer = setInterval(() => setClock(Date.now()), 1000); return () => clearInterval(timer); }, []);
+  const status = rewardStatus(app.wallet, clock),
     [burst, B] = useState(false),
     [hint, H] = useState(false),
     reduced = useReducedMotion();
@@ -95,7 +100,7 @@ export function RewardSheet({ app, close }) {
                     <span>
                       {active
                         ? status.claimed
-                          ? "Завтра"
+                          ? "Следующая"
                           : "Сегодня"
                         : `${i + 1} день`}
                     </span>
@@ -135,8 +140,8 @@ export function RewardSheet({ app, close }) {
             >
               {status.claimed ? (
                 <>
-                  <Check size={21} />
-                  Награда получена
+                  <span className="next-reward-label">Следующая награда</span>
+                  <time className="next-reward-time" dateTime={new Date(status.nextAt).toISOString()}>{rewardCountdown(status.remaining)}</time>
                 </>
               ) : (
                 "Забрать награду"
@@ -230,7 +235,7 @@ export function StoryRail({ app }) {
       >
         <span className="story-news-picture">
           <img src="./images/diverge/trophies.webp" alt="" />
-          <span>О приложении</span>
+          <span>Onboarding</span>
         </span>
       </button>
     </div>
@@ -239,15 +244,16 @@ export function StoryRail({ app }) {
 export function NewsStories({ app, index = 0, close }) {
   const [step, S] = useState(index),
     [elapsed, E] = useState(0),
+    [held, setHeld] = useState(false),
     reduced = useReducedMotion();
   const item = NEWS_ITEMS[step];
   useEffect(() => {
     app.markNews(item.id);
-    E(0);
-    if (reduced) return;
+    if (reduced || held) return;
     const t = setInterval(() => E((p) => p + 100), 100);
     return () => clearInterval(t);
-  }, [step, reduced]);
+  }, [step, reduced, held]);
+  useEffect(() => E(0), [step]);
   useEffect(() => {
     if (elapsed >= 8000) {
       if (step < NEWS_ITEMS.length - 1) S(step + 1);
@@ -259,9 +265,10 @@ export function NewsStories({ app, index = 0, close }) {
     if (step + dir >= NEWS_ITEMS.length) close();
     else S(step + dir);
   };
+  const gestures = useStoryGestures(go, setHeld);
   return (
     <Modal title="Истории Diverge" close={close} kind="news-stories dark-modal">
-      <div className="news-story-content">
+      <div className="news-story-content" {...gestures}>
         <div className="news-story-progress">
           {NEWS_ITEMS.map((n, i) => (
             <span key={n.id}>
@@ -277,6 +284,7 @@ export function NewsStories({ app, index = 0, close }) {
           key={item.image}
           src={`./images/diverge/${item.image}.webp`}
           alt=""
+          draggable={false}
           initial={reduced ? false : { opacity: 0, scale: 1.04 }}
           animate={{ opacity: 1, scale: 1 }}
         />

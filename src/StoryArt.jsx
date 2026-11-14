@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   Activity,
@@ -48,25 +48,25 @@ function SportsCards({ reduced, paused }) {
           initial={
             reduced
               ? false
-              : { opacity: 0, x: 0, y: 190, rotate: 0, scale: 0.72 }
+              : { opacity: 0, x: 0, y: 160, rotate: 0, scale: 0.86 }
           }
           animate={{
             opacity: 1,
-            x: reduced ? c.x : [0, 0, c.x],
-            y: reduced ? c.y : [190, -10, c.y],
-            rotate: reduced ? c.rotate : [0, 0, c.rotate],
+            x: c.x,
+            y: c.y,
+            rotate: c.rotate,
             scale: 1,
           }}
           transition={
             reduced
               ? { duration: 0 }
-              : { duration: 1.05, delay: c.delay, times: [0, 0.47, 1], ease }
+              : { duration: 1.3, delay: c.delay, ease: [0.16, 1, 0.3, 1] }
           }
         >
           <div
             className="story-card-float"
             style={{
-              animationDelay: `${-i * 1.4}s`,
+              animationDelay: `${1.5 + i * 0.15}s`,
               animationPlayState: paused ? "paused" : "running",
             }}
           >
@@ -96,9 +96,9 @@ function AnalysisOrbit({ reduced, paused }) {
     <div className="story-orbit-composition">
       <motion.div
         className="story-orbit-center"
-        initial={reduced ? false : { scale: 0.15, opacity: 0 }}
+        initial={reduced ? false : { scale: 0.6, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: reduced ? 0 : 0.65, ease }}
+        transition={{ duration: reduced ? 0 : 1.0, ease }}
       >
         <ChartPie size={72} strokeWidth={0} fill="currentColor" />
         <span className="orbit-center-shine" />
@@ -145,7 +145,7 @@ function AnalysisOrbit({ reduced, paused }) {
             <motion.div
               key={i}
               className="story-orbit-position"
-              initial={reduced ? false : { x: 0, y: 0, opacity: 0, scale: 0.3 }}
+              initial={reduced ? false : { x: 0, y: 0, opacity: 0, scale: 0.75 }}
               animate={{
                 x: Math.cos(a) * 112,
                 y: Math.sin(a) * 112,
@@ -153,7 +153,7 @@ function AnalysisOrbit({ reduced, paused }) {
                 scale: 1,
               }}
               transition={{
-                duration: reduced ? 0 : 0.75,
+                duration: reduced ? 0 : 1.1,
                 delay: 0.35 + i * 0.095,
                 ease,
               }}
@@ -165,7 +165,7 @@ function AnalysisOrbit({ reduced, paused }) {
                 <div
                   className="story-orbit-node"
                   style={{
-                    animationDelay: `${-i * 0.8}s`,
+                    animationDelay: `${1.8 + i * 0.15}s`,
                     animationPlayState: paused ? "paused" : "running",
                   }}
                 >
@@ -179,7 +179,22 @@ function AnalysisOrbit({ reduced, paused }) {
     </div>
   );
 }
-function ProbabilityGauge({ reduced }) {
+function ProbabilityGauge({ reduced, paused }) {
+  const [value, setValue] = useState(reduced ? 74 : 0);
+  const elapsed = useRef(0);
+  useEffect(() => {
+    if (reduced) { setValue(74); return; }
+    if (paused) return;
+    let last = performance.now(), frame;
+    const tick = (at) => {
+      elapsed.current += Math.min(at - last, 64); last = at;
+      const progress = Math.min(1, Math.max(0, (elapsed.current - 500) / 1550));
+      setValue(Math.round(74 * (1 - Math.pow(1 - progress, 3))));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [reduced, paused]);
   // A decorative story example, independent from fixture predictions.
   const path = "M 50 210 A 113 113 0 1 1 210 210";
   return (
@@ -216,7 +231,7 @@ function ProbabilityGauge({ reduced }) {
           strokeLinecap="round"
           initial={reduced ? false : { strokeDasharray: "0 1" }}
           animate={{ strokeDasharray: ".74 1" }}
-          transition={{ duration: reduced ? 0 : 1.55, delay: 0.2, ease }}
+          transition={{ duration: reduced ? 0 : 1.55, delay: 0.5, ease }}
         />
         <motion.circle
           className="story-gauge-marker"
@@ -225,17 +240,17 @@ function ProbabilityGauge({ reduced }) {
           style={{ offsetPath: `path('${path}')`, offsetRotate: "0deg" }}
           initial={reduced ? false : { offsetDistance: "0%" }}
           animate={{ offsetDistance: "74%" }}
-          transition={{ duration: reduced ? 0 : 1.55, delay: 0.2, ease }}
+          transition={{ duration: reduced ? 0 : 1.55, delay: 0.5, ease }}
         />
       </svg>
       <motion.div
         className="story-gauge-value"
         initial={reduced ? false : { opacity: 0, y: 12, scale: 0.92 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: reduced ? 0 : 0.7, delay: 0.35, ease }}
+        transition={{ duration: reduced ? 0 : 0.5, delay: 0, ease }}
       >
         <strong>
-          74<span>%</span>
+          <span className="gauge-count">{value}</span><span>%</span>
         </strong>
         <span>Победа</span>
         <small></small>
@@ -256,13 +271,13 @@ function ChatSculpture({ reduced, paused }) {
           key={i}
           className="story-glass-column"
           style={{ left: `calc(50% + ${c.x}px)`, height: c.h, top: 50 + c.y }}
-          initial={reduced ? false : { opacity: 0, y: 130, scaleY: 0.5 }}
+          initial={reduced ? false : { opacity: 0, y: 80, scaleY: 0.88 }}
           animate={{ opacity: 1, y: 0, scaleY: 1 }}
-          transition={{ duration: reduced ? 0 : 0.9, delay: i * 0.12, ease }}
+          transition={{ duration: reduced ? 0 : 1.2, delay: i * 0.12, ease }}
         >
           <div
             style={{
-              animationDelay: `${-i * 1.1}s`,
+              animationDelay: `${1.7 + i * 0.15}s`,
               animationPlayState: paused ? "paused" : "running",
             }}
           />
@@ -271,7 +286,7 @@ function ChatSculpture({ reduced, paused }) {
       <motion.div
         className="story-chat-symbol"
         initial={
-          reduced ? false : { opacity: 0, y: 90, rotateY: -45, scale: 0.5 }
+          reduced ? false : { opacity: 0, y: 65, rotateY: -18, scale: 0.8 }
         }
         animate={{ opacity: 1, y: 0, rotateY: 0, scale: 1 }}
         transition={{ duration: reduced ? 0 : 1, delay: 0.35, ease }}
@@ -307,7 +322,7 @@ export default function StoryArt({ step, paused }) {
       ) : step === 1 ? (
         <AnalysisOrbit reduced={reduced} paused={paused} />
       ) : step === 2 ? (
-        <ProbabilityGauge reduced={reduced} />
+        <ProbabilityGauge reduced={reduced} paused={paused} />
       ) : (
         <ChatSculpture reduced={reduced} paused={paused} />
       )}

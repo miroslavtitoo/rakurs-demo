@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "motion/react";
+import { flushSync } from "react-dom";
+import { useStoryGestures } from "./storyGestures.js";
 import {
   ArrowLeft,
   ArrowRight,
@@ -33,6 +35,7 @@ import EventSlider from "./EventSlider.jsx";
 import { StoryRail, CoinButton } from "./RewardsUI.jsx";
 import { ProfileBenefits } from "./BenefitsUI.jsx";
 import { assistantText, operationLabel } from "./presentation.js";
+export const SPORT_EMOJI = { "Футбол": "⚽", "Киберспорт": "🎮", "Теннис": "🎾", "Баскетбол": "🏀", "Хоккей": "🏒" };
 const img = (n) => `./images/diverge/${n}.webp`;
 export function DivergeLogo({ onClick }) {
   const Tag = onClick ? "button" : "span";
@@ -70,9 +73,7 @@ export function PdfStories({ close }) {
     [held, H] = useState(false),
     [progress, Q] = useState(0),
     [maxVisited, MV] = useState(0);
-  const reduced = useReducedMotion(),
-    touch = useRef(null),
-    elapsed = useRef(0);
+  const reduced = useReducedMotion(), elapsed = useRef(0);
   const change = (direction) => {
     if (direction > 0 && step === 3) close();
     else S(Math.max(0, Math.min(3, step + direction)));
@@ -103,14 +104,15 @@ export function PdfStories({ close }) {
     return () => document.removeEventListener("keydown", key);
   }, [step, close]);
   const reveal = (delay, y = 18) => ({
-    initial: reduced ? false : { opacity: 0, y, filter: "blur(5px)" },
-    animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+    initial: reduced ? false : { opacity: 0, y },
+    animate: { opacity: 1, y: 0 },
     transition: {
       duration: reduced ? 0 : 0.58,
       delay: reduced ? 0 : delay,
       ease: [0.22, 1, 0.36, 1],
     },
   });
+  const gestures = useStoryGestures(change, H);
   return (
     <Modal
       title="Знакомство с Diverge"
@@ -121,38 +123,7 @@ export function PdfStories({ close }) {
       <div
         className="pdf-story animated-story"
         data-step={step}
-        onPointerDown={(e) => {
-          if (e.button !== 0 || e.target.closest("button,a,input")) return;
-          touch.current = {
-            x: e.clientX,
-            y: e.clientY,
-            time: performance.now(),
-          };
-          H(true);
-          e.currentTarget.setPointerCapture(e.pointerId);
-        }}
-        onPointerUp={(e) => {
-          H(false);
-          const start = touch.current;
-          touch.current = null;
-          if (!start) return;
-          const dx = e.clientX - start.x,
-            dy = e.clientY - start.y;
-          if (Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy))
-            change(dx < 0 ? 1 : -1);
-          else if (
-            Math.abs(dx) < 12 &&
-            Math.abs(dy) < 12 &&
-            performance.now() - start.time < 350
-          ) {
-            const r = e.currentTarget.getBoundingClientRect();
-            change(e.clientX - r.left < r.width * 0.5 ? -1 : 1);
-          }
-        }}
-        onPointerCancel={() => {
-          H(false);
-          touch.current = null;
-        }}
+        {...gestures}
       >
         <DivergeLogo onClick={() => S(0)} />
         <div className="pdf-progress">
@@ -217,7 +188,10 @@ export function AuthScreen({ app }) {
           <button className="m-button telegram-login" onClick={app.loginTelegram}>
             <Send size={19} />Войти через Telegram
           </button>
-          <p className="telegram-entry-note">Ваш Telegram — ваш аккаунт.<br />Без паролей и SMS.</p>
+          <div className="auth-legal-links">
+            <a href="#/privacy" onClick={(e) => { e.preventDefault(); app.openLegal("privacy"); }}>Политика конфиденциальности</a>
+            <a href="#/terms" onClick={(e) => { e.preventDefault(); app.openLegal("terms"); }}>Пользовательское соглашение</a>
+          </div>
           {app.authHint && <p className="telegram-entry-hint" role="status">{app.authHint}</p>}
         </div>
         <small className="auth-demo">18+</small>
@@ -233,7 +207,6 @@ export function PdfNav({ route, go, bottom = false }) {
     >
       {[
         ["/", "Главная", LayoutGrid],
-        ["/search", "Поиск", Search],
         ["/subscription", "Подписки", Heart],
         ["/chat", "Чат", MessageCircle],
       ].map(([p, l, I]) => (
@@ -266,7 +239,7 @@ export function PdfEventCard({ event: e, app }) {
     >
       <div className="pdf-event-top">
         <span>
-          <i>ϟ</i> {e.league}
+          <span className="sport-emoji" aria-hidden="true">{SPORT_EMOJI[e.sport]}</span> {e.league}
         </span>
         <button
           aria-label={`Сохранить: ${e.id}`}
@@ -317,14 +290,11 @@ export function PdfEventCard({ event: e, app }) {
       </button>
       <div className="pdf-event-bottom">
         <span className="pdf-locked">
-          {access || app.outcomeAccess(e.id)
-            ? `${e.probabilities[0]}%`
-            : "AI-анализ"}
-          <small>
-            {access || app.outcomeAccess(e.id)
-              ? `${(100 / e.probabilities[0]).toFixed(2)} кф. `
-              : e.sport}
-          </small>
+          {access || app.outcomeAccess(e.id) ? <>
+            <strong>{e.probabilities[0]}%</strong>
+            <small>Шанс победы: {e.home}</small>
+            <span className="card-forecast-time">Оценка до матча</span>
+          </> : <><strong className="locked-card-title">Прогноз на матч</strong><small>Статистика и факторы</small></>}
         </span>
         <button className="m-button" onClick={() => app.go("/match/" + e.id)}>
           {access ? "Открыть" : "Прогноз"} <ArrowUpRight size={13} />
@@ -344,7 +314,9 @@ export function PdfCatalog({
     [query, Q] = useState(""),
     [filters, F] = useState({ date: "Все", prob: 0, odds: 1.1 }),
     [sheet, H] = useState(null),
-    [saved, B] = useState(false);
+    [saved, B] = useState(false),
+    [searchOpen, setSearchOpen] = useState(searchPage);
+  const searchInput = useRef(null);
   const list = fixtures.filter(
     (e) =>
       (sport === "Все" || e.sport === sport) &&
@@ -375,7 +347,7 @@ export function PdfCatalog({
         <h2>{title}</h2>
         {rail && (
           <button
-            onClick={() => T(title.includes("LIVE") ? "live" : "upcoming")}
+            onClick={() => T(title === "Live" ? "live" : "upcoming")}
           >
             Смотреть все
           </button>
@@ -418,28 +390,34 @@ export function PdfCatalog({
           <h1>Найдите свой матч</h1>
         </div>
       )}
-      {(searchPage || query) && (
+      <div className="inline-search-shell" data-open={searchOpen || searchPage || !!query}>
         <label className="m-search catalog-search">
           <Search size={18} />
           <input
             aria-label="Поиск события"
+            ref={searchInput}
+            tabIndex={searchOpen || searchPage || query ? 0 : -1}
             placeholder="Команда, игрок или турнир"
+            type="search"
+            enterKeyHint="search"
+            autoComplete="off"
+            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
             value={query}
             onChange={(e) => Q(e.target.value)}
           />
-          {query && (
-            <button aria-label="Очистить поиск" onClick={() => Q("")}>
-              <X size={16} />
-            </button>
-          )}
+          <button aria-label={query ? "Очистить поиск" : "Закрыть поиск"} onClick={() => {
+            if (query) Q("");
+            else if (searchPage) app.go("/");
+            else setSearchOpen(false);
+          }}><X size={16} /></button>
         </label>
-      )}
+      </div>
       <div className="pdf-filterbar">
         <div className="sports-rail" aria-label="Вид спорта">
           {SPORTS.map((s) => (
             <button key={s} aria-pressed={s === sport} onClick={() => S(s)}>
               {s}
-              {s === "Футбол" ? " ⚽" : s === "Хоккей" ? " ◒" : ""}
+              {SPORT_EMOJI[s] && <span className="sport-emoji" aria-hidden="true"> {SPORT_EMOJI[s]}</span>}
             </button>
           ))}
         </div>
@@ -454,7 +432,11 @@ export function PdfCatalog({
         <button
           className="m-icon"
           aria-label="Открыть поиск"
-          onClick={() => H("search")}
+          aria-expanded={searchOpen || searchPage || !!query}
+          onClick={() => {
+            flushSync(() => setSearchOpen(true));
+            searchInput.current?.focus({ preventScroll: true });
+          }}
         >
           <Search size={20} />
         </button>
@@ -491,12 +473,12 @@ export function PdfCatalog({
       !changed ? (
         <>
           {section(
-            "TOP LIVE ⚽",
+            "Live",
             visible.filter((e) => e.status === "live"),
             true,
           )}
           {section(
-            "TOP PRE-MATCH ⚽",
+            "Pre-match",
             visible.filter((e) => e.status === "upcoming"),
             true,
           )}
@@ -802,6 +784,8 @@ export function Profile({ app }) {
             <ChevronRight size={17} />
           </button>
         ))}
+        <button className="profile-row" onClick={() => app.openLegal("privacy")}>Политика конфиденциальности<ChevronRight size={17} /></button>
+        <button className="profile-row" onClick={() => app.openLegal("terms")}>Пользовательское соглашение<ChevronRight size={17} /></button>
         <button className="profile-row" onClick={app.logout}>
           <LogOut size={19} />Выйти из профиля
         </button>

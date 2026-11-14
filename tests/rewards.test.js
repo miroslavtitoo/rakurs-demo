@@ -10,6 +10,7 @@ import {
   applyPromo,
   usePackageCoupon,
   referralLink,
+  rewardCountdown,
   emptyWallet,
   rewardDay,
   rewardStatus,
@@ -39,11 +40,15 @@ test("Missed day resets the streak but keeps coins; clock rollback never duplica
   assert.equal(rewardStatus(b, start + day).canClaim, false);
   assert.deepEqual(claimReward(b, start + day), b);
 });
-test("Daily boundaries use Moscow time rather than UTC or browser local time", () => {
+test("Popup dates use Moscow, while claim countdown lasts 24h across midnight and reload", () => {
   assert.equal(rewardDay(Date.parse("2026-11-14T20:59:59Z")), "2026-11-14");
   assert.equal(rewardDay(Date.parse("2026-11-14T21:00:00Z")), "2026-11-15");
   const w = claimReward(emptyWallet, Date.parse("2026-11-14T20:59:59Z"));
-  assert.equal(claimReward(w, Date.parse("2026-11-14T21:00:01Z")).balance, 25);
+  assert.equal(claimReward(w, Date.parse("2026-11-14T21:00:01Z")).balance, 10);
+  assert.equal(rewardCountdown(rewardStatus(w, Date.parse("2026-11-14T20:59:59Z")).remaining), "24:00");
+  assert.equal(rewardCountdown(rewardStatus(w, Date.parse("2026-11-14T21:00:59Z")).remaining), "23:59");
+  assert.equal(claimReward(JSON.parse(JSON.stringify(w)), Date.parse("2026-11-15T20:59:59Z")).balance, 25);
+  assert.equal(rewardCountdown(0), "00:00");
 });
 test("Wheel costs 10 once, selects every sector correctly and awards an inventory item", () => {
   assert.equal(SPIN_COST, 10);

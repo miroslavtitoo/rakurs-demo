@@ -96,7 +96,7 @@ try {
   await expect(page.locator(".coin-balance-button")).toContainText("10");
   await expect(page.locator(".reward-day.active")).toContainText("15");
   await expect(
-    page.getByRole("button", { name: "Награда получена", exact: true }),
+    page.getByRole("button", { name: /Следующая награда/ }),
   ).toBeDisabled();
   await shot("daily-claimed");
   await clean();
@@ -109,7 +109,7 @@ try {
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.locator(".coin-balance-button").click();
   await expect(
-    page.getByRole("button", { name: "Награда получена", exact: true }),
+    page.getByRole("button", { name: /Следующая награда/ }),
   ).toBeDisabled();
   await close();
   await expect(page.locator(".story-news-tile.unread")).toHaveCount(4);
@@ -132,7 +132,8 @@ try {
   await shot("catalog");
   let total = 10;
   for (let day = 1; day < 7; day++) {
-    await page.clock.setSystemTime(new Date(initial + day * 86400000));
+    const previousClaim = await page.evaluate(() => JSON.parse(localStorage.getItem("rakurs:rewardsWallet")).lastClaimAt);
+    await page.clock.setSystemTime(new Date(previousClaim + 86400000 + 1000));
     await page.evaluate(() =>
       document.dispatchEvent(new Event("visibilitychange")),
     );

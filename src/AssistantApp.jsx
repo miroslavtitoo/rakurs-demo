@@ -70,6 +70,7 @@ import "./pdfDesign.css";
 import "./mobilePolish.css";
 import "./rewards.css";
 import { assistantText } from "./presentation.js";
+import { LegalDocument } from "./LegalUI.jsx";
 import { FortuneWheel, PromoSheet, ReferralSheet } from "./BenefitsUI.jsx";
 import { isTelegramAccount, telegramAccount, requestTelegramContact } from "./telegramAuth.js";
 import {
@@ -1097,11 +1098,20 @@ export default function AssistantApp() {
   ]);
   const [pending, setPending] = useState(null);
   const [modal, setModal] = useState(() =>
-    seen === true ? (user ? null : { type: "auth" }) : { type: "stories" },
+    ["/privacy","/terms"].includes(route) ? {type:"legal", document:route.slice(1)} : seen === true ? (user ? null : { type: "auth" }) : { type: "stories" },
   );
   const [toast, setToast] = useState("");
   const [justUnlocked, setJustUnlocked] = useState(null);
   const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const sync = () => {
+      const el = document.activeElement;
+      document.documentElement.dataset.editing = String(!!el?.matches("input:not([readonly]),textarea,[contenteditable='true']"));
+    };
+    document.addEventListener("focusin", sync);
+    document.addEventListener("focusout", sync);
+    return () => { document.removeEventListener("focusin",sync); document.removeEventListener("focusout",sync); delete document.documentElement.dataset.editing; };
+  }, []);
   useEffect(() => initTelegram(), []);
   useEffect(() => {
     purchaseBusy.current = false;
@@ -1119,8 +1129,12 @@ export default function AssistantApp() {
   useEffect(() => {
     if (!user || seen !== true || modal || !rewardStatus(savedWallet, now).shouldShow)
       return;
-    setWallet((p) => ({ ...normalizeWallet(p), lastShownDay: rewardDay(now) }));
-    setModal({ type: "rewards" });
+    const timer = setTimeout(() => {
+      if (document.hidden) return;
+      setWallet((p) => ({ ...normalizeWallet(p), lastShownDay: rewardDay(Date.now()) }));
+      setModal({ type: "rewards" });
+    }, 1400);
+    return () => clearTimeout(timer);
   }, [user, seen, modal, now, savedWallet.lastShownDay]);
   useEffect(() => {
     const changed = () => setRoute(marketRoute(routeFromHash(location.hash)));
@@ -1131,6 +1145,9 @@ export default function AssistantApp() {
       clearInterval(timer);
     };
   }, []);
+  useEffect(() => {
+    if (["/privacy","/terms"].includes(route)) setModal({type:"legal",document:route.slice(1)});
+  }, [route]);
   useEffect(() => {
     scrollTo(0, 0);
     document.querySelector("main")?.focus({ preventScroll: true });
@@ -1146,6 +1163,11 @@ export default function AssistantApp() {
     haptic();
   };
   function close() {
+    if (modal?.type === "legal") {
+      setModal(modal.returnTo || (seen !== true ? {type:"stories"} : user ? null : {type:"auth"}));
+      if (["/privacy","/terms"].includes(route)) go("/");
+      return;
+    }
     if (modal?.type === "stories") {
       try {
         localStorage.setItem("rakurs:pdfOnboardingSeen", "true");
@@ -1161,10 +1183,11 @@ export default function AssistantApp() {
     const tg = window.Telegram?.WebApp;
     if (!isTelegramWebApp(tg) || !tg.isVersionAtLeast?.("6.1")) return;
     const back = () => {
+      if (modal?.type === "legal") { close(); return; }
       if (!user || modal?.type === "stories") return;
       modal ? close() : go("/");
     };
-    if (!user || modal?.type === "stories") tg.BackButton.hide();
+    if ((!user && modal?.type !== "legal") || modal?.type === "stories") tg.BackButton.hide();
     else if (route !== "/" || modal) tg.BackButton.show();
     else tg.BackButton.hide();
     tg.BackButton.onClick(back);
@@ -1194,6 +1217,7 @@ export default function AssistantApp() {
     cards,
     wallet,
     readNews,
+    openLegal: (document) => setModal({ type: "legal", document, returnTo: modal }),
     open: (next) => {
       if (next.type === "rewards")
         setWallet((p) => ({
@@ -1203,10 +1227,12 @@ export default function AssistantApp() {
       setModal(next);
     },
     claimCoins: () => {
-      const amount = rewardStatus(wallet, now).amount;
-      setWallet((p) => claimReward(p, now));
+      const at = Date.now(), status = rewardStatus(wallet, at);
+      if (!status.canClaim) return;
+      setNow(at);
+      setWallet((p) => claimReward(p, at));
       haptic();
-      setToast(`+${amount} монет`);
+      setToast("");
     },
     spin: () => {
       if (!user || purchaseBusy.current) return null;
@@ -1245,7 +1271,7 @@ export default function AssistantApp() {
       setAuthHint("");
       setModal(pending);
       setPending(null);
-      setToast("Добро пожаловать, " + account.name.split(" ")[0]);
+      setToast("");
     },
     shareContact: () => {
       if (!user || user.contactShared || contactBusy.current) return;
@@ -1284,7 +1310,7 @@ export default function AssistantApp() {
       setContactHint("");
       setPending(null);
       setModal({ type: "auth" });
-      setToast("Вы вышли. Покупки сохранены в браузере.");
+      setToast("");
     },
     updateName: (name) => setUser((p) => ({ ...p, name: name.trim() || p.name })),
     addCard: () => {
@@ -1409,8 +1435,8 @@ export default function AssistantApp() {
           <motion.div
             data-route={route}
             key={route}
-            initial={reduced ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={reduced ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{
               duration: reduced ? 0 : 0.38,
               ease: [0.22, 1, 0.36, 1],
@@ -1473,6 +1499,8 @@ export default function AssistantApp() {
       <AnimatePresence>
         {modal?.type === "stories" ? (
           <PdfStories close={close} />
+        ) : modal?.type === "legal" ? (
+          <LegalDocument document={modal.document} close={close} />
         ) : !user ? (
           <AuthScreen key="telegram-auth" app={app} />
         ) : modal?.type === "wheel" ? (

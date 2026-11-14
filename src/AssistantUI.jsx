@@ -118,7 +118,7 @@ function Modal({ title, close, children, kind = "", dismissible = true }) {
         }
         animate={{ y: 0, scale: 1, opacity: 1 }}
         exit={rewardSheet && !reduced ? { y: "100%" } : undefined}
-        transition={{ duration: reduced ? 0 : 0.38, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: reduced ? 0 : rewardSheet ? 0.72 : 0.38, ease: rewardSheet ? [0.16, 1, 0.3, 1] : [0.22, 1, 0.36, 1] }}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="m-modal-head">
