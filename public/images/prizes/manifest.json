@@ -1,0 +1,36 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "asset": "prize-atlas-v1.png",
+  "size": [
+    1536,
+    1024
+  ],
+  "alpha": true,
+  "prompt": "Use case: product-mockup. Asset type: transparent sprite atlas of six premium 3D prize objects for a dark violet Russian mobile sports analytics app called Diverge. Create exactly six separate isolated objects in a precise 3 columns by 2 rows grid, equal square cells, generous empty gutters and margins, no object crossing its cell. Transparent background with real alpha, no backdrop, no floor. Canvas landscape 1536x1024. Row 1 left: a beautiful titanium smartphone pair inspired by iPhone, front purple glass display and back with three lenses, no logo, three-quarter product view. Row 1 middle: open silver aluminum laptop inspired by MacBook, luminous purple abstract screen, no logo. Row 1 right: a soft tan leather pouch bursting with shiny gold coins featuring a simple geometric diamond engraving. Row 2 left: a thick glossy violet coupon ticket with rounded corners and semicircular notches, blank front, tilted slightly, no lettering or numbers. Row 2 middle: a translucent violet premium sports analytics trophy sculpture with small glass chart columns, a bright silver star and violet base. Row 2 right: a luxurious violet wallet with several Russian-ruble-inspired plain banknotes and small gold coins, no readable currency designs or text. All objects centered in their cells, consistent scale about 72 percent of each cell, polished 3D product rendering, soft violet rim light and warm gold highlights, rich physical materials, subtle self shadows only, strong readable silhouette at mobile sizes. No typography, no captions, no watermarks, no UI, no unrelated objects. The generated image will be consumed as a CSS sprite sheet, so grid alignment and clean transparency are essential.",
+  "cells": {
+    "phone": [
+      0,
+      0
+    ],
+    "laptop": [
+      1,
+      0
+    ],
+    "coins": [
+      2,
+      0
+    ],
+    "coupon": [
+      0,
+      1
+    ],
+    "forecast": [
+      1,
+      1
+    ],
+    "cash": [
+      2,
+      1
+    ]
+  }
+}

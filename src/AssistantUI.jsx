@@ -39,6 +39,7 @@ function Modal({ title, close, children, kind = "", dismissible = true }) {
   const closeRef = useRef(close);
   closeRef.current = dismissible ? close : () => {};
   useEffect(() => {
+    if (!isPresent) return;
     const previous = document.activeElement;
     const shell = document.querySelector(".market-app");
     if (modalCount === 0) savedOverflow = document.body.style.overflow;
@@ -87,7 +88,7 @@ function Modal({ title, close, children, kind = "", dismissible = true }) {
         if (previous?.isConnected) previous.focus({ preventScroll: true });
       }
     };
-  }, []);
+  }, [isPresent]);
   return createPortal(
     <motion.div
       className="m-backdrop"

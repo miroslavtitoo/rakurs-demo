@@ -1107,3 +1107,8 @@
 .auth-legal-links a { display:flex; align-items:center; min-height:32px; color:#c6b8d8; font-size:10px; line-height:1.45; text-decoration:underline; text-underline-offset:3px; }
 .auth-legal-links a:focus-visible { outline:2px solid #d9adff; outline-offset:3px; border-radius:4px; }
 @media(max-height:640px) { .auth-legal-links a { min-height:28px; font-size:9px; } }
+
+.profile-prizes-link{display:flex;align-items:center;gap:13px;width:100%;margin-top:12px;padding:18px;border:1px solid #bf6be12b;border-radius:18px;background:#181025;text-align:left;color:#dcc3f1}
+.profile-prizes-link>span{flex:1}.profile-prizes-link strong{display:block;font-size:14px;color:#fff}.profile-prizes-link small{display:block;font-size:11px;color:#a595b5;margin-top:5px}
+.use-balance{display:flex!important;gap:12px;align-items:center;margin:24px 0 0;padding:15px;border-radius:14px;background:#a65dcb12;color:#22132f;font-size:13px}
+.use-balance>input{width:19px!important;height:19px!important;min-height:19px!important;flex-shrink:0;accent-color:#9d2ce4}.use-balance>span{display:flex;justify-content:space-between;gap:12px;flex:1}.use-balance strong{white-space:nowrap}

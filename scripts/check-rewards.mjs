@@ -1,7 +1,7 @@
 import { signInTelegram } from "./telegram-test-user.mjs";
 import { chromium, expect } from "@playwright/test";
 import fs from "node:fs/promises";
-import { rewardDay, DAILY_REWARDS } from "../src/rewards.js";
+import { rewardDay, DAILY_REWARDS, prizeRoll } from "../src/rewards.js";
 const browser = await chromium.launch({ channel: "msedge" }),
   base = process.env.DEMO_URL || "http://localhost:5173/";
 const page = await browser.newPage({
@@ -24,11 +24,17 @@ async function finish(p = page) {
     await p.getByRole("button", { name: "Далее", exact: true }).click();
 }
 async function close(p = page) {
+  if (await p.locator(".roulette-result").count()) {
+    await p.getByRole("button",{name:"Закрыть выигрыш",exact:true}).click();
+    await expect(p.getByRole("dialog")).toHaveCount(0);
+    await expect.poll(()=>p.locator(".market-app").evaluate((el)=>el.inert)).toBe(false);return;
+  }
   await p
     .getByRole("dialog")
     .getByRole("button", { name: "Закрыть", exact: true })
     .click();
   await expect(p.getByRole("dialog")).toHaveCount(0);
+  await expect.poll(()=>p.locator(".market-app").evaluate((el)=>el.inert)).toBe(false);
 }
 async function clean(p = page) {
   await expect(p.locator("body")).not.toContainText(
@@ -177,10 +183,10 @@ try {
   await close();
   await route("/profile");
   await page.locator(".profile-wheel-card").click();
-  await page.evaluate(()=>{crypto.getRandomValues=(array)=>{array[0]=Math.floor(3.5/8*4294967296);return array;};});
-  await page.getByRole("button",{name:"Крутить за 10 монет",exact:true}).click();
-  await expect(page.locator(".wheel-result")).toContainText("Бесплатный прогноз");
-  await expect(page.locator(".wheel-balance")).toContainText("120");
+  await page.evaluate((roll)=>{crypto.getRandomValues=(array)=>{array[0]=Math.floor(roll*4294967296);return array;};},prizeRoll(3));
+  await page.locator(".wheel-spin-button").click();
+  await expect(page.locator(".result-copy")).toContainText("Бесплатный прогноз");
+  await expect(page.locator(".roulette-wallet")).toContainText("120");
   await shot("forecast-prize");
   await close();
   await route("/match/fox-metro");
@@ -214,9 +220,9 @@ try {
   // A coupon is a wheel prize, not a direct exchange for coins.
   await route("/profile");
   await page.locator(".profile-wheel-card").click();
-  await page.evaluate(()=>{crypto.getRandomValues=(array)=>{array[0]=Math.floor(7.5/8*4294967296);return array;};});
-  await page.getByRole("button",{name:"Крутить за 10 монет",exact:true}).click();
-  await expect(page.locator(".wheel-result")).toContainText("Скидка 30%");
+  await page.evaluate((roll)=>{crypto.getRandomValues=(array)=>{array[0]=Math.floor(roll*4294967296);return array;};},prizeRoll(7));
+  await page.locator(".wheel-spin-button").click();
+  await expect(page.locator(".result-copy")).toContainText("Скидка 30%");
   await shot("coupon-prize");
   await close();
   await page.reload();
@@ -247,9 +253,9 @@ try {
   await expect(page.locator(".evidence-panel")).toHaveCount(0);
   await route("/profile");
   await page.locator(".profile-wheel-card").click();
-  await page.evaluate(()=>{crypto.getRandomValues=(array)=>{array[0]=Math.floor(3.5/8*4294967296);return array;};});
-  await page.getByRole("button",{name:"Крутить за 10 монет",exact:true}).click();
-  await expect(page.locator(".wheel-result")).toContainText("Бесплатный прогноз");
+  await page.evaluate((roll)=>{crypto.getRandomValues=(array)=>{array[0]=Math.floor(roll*4294967296);return array;};},prizeRoll(3));
+  await page.locator(".wheel-spin-button").click();
+  await expect(page.locator(".result-copy")).toContainText("Бесплатный прогноз");
   await close();
   await route("/match/ember-frost");
   await page.getByRole("button", { name: /Купить прогноз/ }).click();
@@ -260,7 +266,7 @@ try {
   await expect
     .poll(() =>
       page.evaluate(() =>
-        JSON.parse(localStorage.getItem("rakurs:rewardsWallet")).forecastRewards,
+        JSON.parse(localStorage.getItem("rakurs:rewardsWallet")).prizes.filter(p=>p.prize.kind==="forecast" && p.usedAt==null).length,
       ),
     )
     .toBe(0);

@@ -894,7 +894,10 @@ export function ExtraModal({ modal, app, close }) {
     [amount, A] = useState(2259),
     [selected, S] = useState(0),
     [tier, T] = useState("outcome"),
-    [card, C] = useState(null);
+    [card, C] = useState(null),
+    [useFunds,setUseFunds] = useState(true),
+    [checkoutNow,setCheckoutNow] = useState(Date.now());
+  useEffect(()=>{if(!["order","plans"].includes(type))return;const t=setInterval(()=>setCheckoutNow(Date.now()),1000);return()=>clearInterval(t);},[type]);
   const white = ["topup", "order", "edit", "paymentCard", "search"].includes(
     type,
   );
@@ -1068,9 +1071,10 @@ export function ExtraModal({ modal, app, close }) {
             </div>
             <p className="field-title">Способ оплаты</p>
             {methods}
+            {app.balance > 0 && <label className="use-balance"><input type="checkbox" checked={useFunds} onChange={(e)=>setUseFunds(e.target.checked)}/><span>Использовать баланс<strong>{app.paymentQuote(app.packageQuote(modal.package,checkoutNow).price,true).used} ₽</strong></span></label>}
             <div className="order-total">
-              <span>Итого</span>
-              <span>{app.packageQuote(modal.package).price} рублей</span>
+              <span>К оплате</span>
+              <span>{app.paymentQuote(app.packageQuote(modal.package,checkoutNow).price,useFunds).due} рублей</span>
             </div>
             {app.packageQuote(modal.package).discount > 0 && (
               <p className="coupon-applied">Применена скидка {app.packageQuote(modal.package).discount}% по купону</p>
@@ -1078,8 +1082,7 @@ export function ExtraModal({ modal, app, close }) {
             <button
               className="m-button"
               onClick={() => {
-                app.buyPackage(modal.package);
-                close();
+                if(app.buyPackage(modal.package,useFunds,app.packageQuote(modal.package,checkoutNow).price)) close();
               }}
             >
               Оплатить
@@ -1359,7 +1362,12 @@ export function ExtraModal({ modal, app, close }) {
 
 export function EventOrder({ event: e, app, close, confirm }) {
   const [currency, C] = useState(app.credits > 0 ? "package" : "rub"),
-    [cardIndex, CI] = useState(Math.max(0, app.cards.findIndex((c) => c.primary)));
+    [cardIndex, CI] = useState(Math.max(0, app.cards.findIndex((c) => c.primary))),
+    [useFunds,setUseFunds] = useState(true),
+    [checkoutNow,setCheckoutNow] = useState(Date.now());
+  const usable=app.forecastCreditsAt(checkoutNow), payment=app.paymentQuote(199,useFunds);
+  useEffect(()=>{const t=setInterval(()=>setCheckoutNow(Date.now()),1000);return()=>clearInterval(t);},[]);
+  useEffect(()=>{if(currency==="package" && !usable)C("rub");},[usable]);
   return (
     <Modal title="Оформление заказа" close={close} kind="white-sheet event-order">
       <div className="sheet-body">
@@ -1376,8 +1384,9 @@ export function EventOrder({ event: e, app, close, confirm }) {
           <button aria-pressed={currency === "rub"} onClick={() => C("rub")}>Рубли</button>
         </div>}
         {currency === "package" ? <p className="auth-hint">Доступно анализов: {app.credits}. Будет использован один.</p> : <div className="demo-methods">{app.cards.map((card,i) => <button key={card.id} aria-pressed={i === cardIndex} onClick={() => CI(i)}><b>{card.brand}</b><span>{card.brand} · {card.last}</span></button>)}</div>}
-        <div className="order-total"><span>Итого</span><strong>{currency === "package" ? "0" : "199"} рублей</strong></div>
-        <button className="m-button confirm-purchase" onClick={() => confirm(currency)}>{currency === "package" ? "Использовать анализ" : "Оплатить 199 ₽"}</button>
+        {currency==="rub" && app.balance>0 && <label className="use-balance"><input type="checkbox" checked={useFunds} onChange={(e)=>setUseFunds(e.target.checked)}/><span>Использовать баланс<strong>{app.paymentQuote(199,true).used} ₽</strong></span></label>}
+        <div className="order-total"><span>К оплате</span><strong>{currency === "package" ? "0" : payment.due} рублей</strong></div>
+        <button className="m-button confirm-purchase" onClick={() => confirm(currency,useFunds)}>{currency === "package" ? "Использовать анализ" : `Оплатить ${payment.due} ₽`}</button>
         <button className="text-button" onClick={() => { close(); app.go("/subscription"); }}>Все события за 1 000 ₽ / месяц</button>
       </div>
     </Modal>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -71,7 +71,9 @@ import "./mobilePolish.css";
 import "./rewards.css";
 import { assistantText } from "./presentation.js";
 import { LegalDocument } from "./LegalUI.jsx";
-import { FortuneWheel, PromoSheet, ReferralSheet } from "./BenefitsUI.jsx";
+import { PromoSheet, ReferralSheet } from "./BenefitsUI.jsx";
+const FortuneWheel = lazy(() => import("./RouletteUI.jsx").then((m) => ({default:m.FortuneWheel})));
+const PrizeCollection = lazy(() => import("./RouletteUI.jsx").then((m) => ({default:m.PrizeCollection})));
 import { isTelegramAccount, telegramAccount, requestTelegramContact } from "./telegramAuth.js";
 import {
   CoinButton,
@@ -89,6 +91,9 @@ import {
   applyPromo,
   usePackageCoupon,
   packagePrice,
+  availableForecastRewards,
+  consumeForecastReward,
+  balancePayment,
 } from "./rewards.js";
 
 const statuses = [
@@ -1163,6 +1168,7 @@ export default function AssistantApp() {
     haptic();
   };
   function close() {
+    if (modal?.type === "prizes" && modal.returnTo === "wheel") { setModal({type:"wheel"}); return; }
     if (modal?.type === "legal") {
       setModal(modal.returnTo || (seen !== true ? {type:"stories"} : user ? null : {type:"auth"}));
       if (["/privacy","/terms"].includes(route)) go("/");
@@ -1210,13 +1216,16 @@ export default function AssistantApp() {
     authHint,
     contactPending,
     contactHint,
-    credits: credits + wallet.forecastRewards,
+    credits: credits + availableForecastRewards(wallet,now),
+    forecastCreditsAt: (at) => credits + availableForecastRewards(wallet,at),
     outcomeCredits,
-    balance,
+    balance: balance + wallet.bonusBalance,
+    paymentQuote: (price,enabled=true) => balancePayment(price,wallet,balance,enabled),
     transactions,
     cards,
     wallet,
     readNews,
+    dismiss: () => setModal(null),
     openLegal: (document) => setModal({ type: "legal", document, returnTo: modal }),
     open: (next) => {
       if (next.type === "rewards")
@@ -1238,7 +1247,9 @@ export default function AssistantApp() {
       if (!user || purchaseBusy.current) return null;
       const bytes = new Uint32Array(1);
       crypto.getRandomValues(bytes);
-      const outcome = spinWheel(wallet, bytes[0] / 4294967296, now);
+      const at=Date.now();
+      setNow(at);
+      const outcome = spinWheel(wallet, bytes[0] / 4294967296, at);
       if (!outcome) return null;
       purchaseBusy.current = true;
       setWallet(outcome.wallet);
@@ -1246,12 +1257,17 @@ export default function AssistantApp() {
       return outcome.result;
     },
     finishSpin: () => { purchaseBusy.current = false; haptic(); },
+    revealPrize: (id) => setWallet((p) => {
+      const w=normalizeWallet(p);
+      if (!w.prizes.some((item)=>item.id===id && item.revealedAt == null)) return p;
+      return {...w, prizes:w.prizes.map((item)=>item.id===id ? {...item,revealedAt:Date.now()} : item)};
+    }),
     applyPromo: (code) => {
       const result = applyPromo(wallet, code, now);
       if (result.ok) setWallet(result.wallet);
       return { ok: result.ok, message: result.message };
     },
-    packageQuote: (p) => packagePrice(p, wallet),
+    packageQuote: (p,at=Date.now()) => packagePrice(p, wallet,at),
     markNews: (id) => setReadNews((p) => (p.includes(id) ? p : [...p, id])),
     openNews: (index) => {
       const id = NEWS_ITEMS[index].id;
@@ -1339,14 +1355,17 @@ export default function AssistantApp() {
       record("Пополнение", amount);
       setToast("Баланс пополнен");
     },
-    buyPackage: (p) => {
+    buyPackage: (p,useFunds=true,expectedPrice=null) => {
+      if (purchaseBusy.current) return false;
+      const at=Date.now(), quote=packagePrice(p,wallet,at);
+      if(expectedPrice!==null && expectedPrice!==quote.price) { setToast("Срок купона истёк. Проверьте обновлённую цену."); return false; }
+      purchaseBusy.current=true;
       if (p.tier === "outcome") setOutcomeCredits((n) => n + p.count);
       else setCredits((n) => n + p.count);
-      const quote = packagePrice(p, wallet);
-      record("Пакет · " + p.count + " матчей", -quote.price);
-      if (quote.discount)
-        setWallet((w) => usePackageCoupon(w, quote.couponId));
+      const payment=settleBalance(quote.price,useFunds,quote.couponId);
+      record("Пакет · " + p.count + " матчей" + (payment.used ? ` · с баланса ${payment.used} ₽` : ""), -quote.price);
       setToast("Пакет доступен в профиле");
+      return true;
     },
     access,
     favorites,
@@ -1381,7 +1400,16 @@ export default function AssistantApp() {
   const current = route.startsWith("/match/")
     ? fixtures.find((e) => e.id === route.slice(7))
     : null;
-  function unlock(method = "rub") {
+  function settleBalance(price,enabled,couponId=null) {
+    const payment=balancePayment(price,wallet,balance,enabled);
+    if(payment.used || couponId) setWallet((p)=>{
+      const w=couponId ? usePackageCoupon(p,couponId,Date.now()) : normalizeWallet(p);
+      return {...w,bonusBalance:Math.max(0,w.bonusBalance-payment.bonusUsed)};
+    });
+    if(payment.regularUsed) setBalance((p)=>Math.max(0,p-payment.regularUsed));
+    return payment;
+  }
+  function unlock(method = "rub", useFunds = true) {
     const e = modal.event;
     if (!user) {
       requireLogin({ type: "checkout", event: e });
@@ -1389,13 +1417,17 @@ export default function AssistantApp() {
     }
     if (purchaseBusy.current || access(e.id)) return;
     if (!["rub", "package"].includes(method)) return;
-    if (method === "package" && credits + wallet.forecastRewards <= 0) return;
+    const at=Date.now(), earned=availableForecastRewards(wallet,at);
+    if (method === "package" && credits + earned <= 0) return;
     purchaseBusy.current = true;
     if (method === "package") {
-      if (wallet.forecastRewards > 0) setWallet((p) => ({ ...normalizeWallet(p), forecastRewards: normalizeWallet(p).forecastRewards - 1 }));
+      if (earned > 0) setWallet((p) => consumeForecastReward(p,at));
       else setCredits((p) => p - 1);
     }
-    else record("Прогноз · " + e.home, -PRICE);
+    else {
+      const payment=settleBalance(PRICE,useFunds);
+      record("Прогноз · " + e.home + (payment.used ? ` · с баланса ${payment.used} ₽` : ""), -PRICE);
+    }
     setPurchases((prev) => (prev.includes(e.id) ? prev : [...prev, e.id]));
     setJustUnlocked(e.id);
     setModal(null);
@@ -1503,8 +1535,10 @@ export default function AssistantApp() {
           <LegalDocument document={modal.document} close={close} />
         ) : !user ? (
           <AuthScreen key="telegram-auth" app={app} />
+        ) : modal?.type === "prizes" ? (
+          <Suspense fallback={<Modal title="Загружаем призы" close={close}><p>Ещё мгновение…</p></Modal>}><PrizeCollection app={app} close={close} catalogue={modal.catalogue} /></Suspense>
         ) : modal?.type === "wheel" ? (
-          <FortuneWheel app={app} close={close} />
+          <Suspense fallback={<Modal title="Загружаем рулетку" close={close}><p>Ещё мгновение…</p></Modal>}><FortuneWheel app={app} close={close} /></Suspense>
         ) : modal?.type === "promo" ? (
           <PromoSheet app={app} close={close} />
         ) : modal?.type === "referral" ? (

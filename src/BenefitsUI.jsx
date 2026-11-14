@@ -1,85 +1,27 @@
-import React, { useRef, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import React, { useState } from "react";
 import { Gift, Ticket, Users, ChevronRight, Copy, Check, Sparkles } from "lucide-react";
 import { Modal } from "./AssistantUI.jsx";
-import { Coin } from "./RewardsUI.jsx";
-import { SPIN_COST, WHEEL_PRIZES, referralLink } from "./rewards.js";
+import { SPIN_COST, referralLink } from "./rewards.js";
 
 export function ProfileBenefits({ app }) {
   return (
     <section className="profile-benefits" aria-label="Бонусы и приглашения">
       <button className="profile-wheel-card" onClick={() => app.open({ type: "wheel" })}>
         <span className="benefit-icon"><Sparkles size={25} /></span>
-        <span><strong>Колесо фортуны</strong><small>Одно вращение — {SPIN_COST} монет</small></span>
+        <span><strong>Рулетка призов</strong><small>Одно вращение — {SPIN_COST} монет</small></span>
         <ChevronRight size={20} />
       </button>
       <div className="profile-benefit-links">
         <button onClick={() => app.open({ type: "promo" })}><Ticket size={20} /><strong>Промокод</strong><small>Активировать бонус</small><ChevronRight size={17} /></button>
         <button onClick={() => app.open({ type: "referral" })}><Users size={20} /><strong>Пригласить друзей</strong><small>Ваша ссылка</small><ChevronRight size={17} /></button>
       </div>
-      {(app.wallet.forecastRewards > 0 || app.wallet.coupons.length > 0) && (
-        <div className="prize-inventory">
-          <span><Gift size={17} /> Ваши призы</span>
-          {app.wallet.forecastRewards > 0 && <strong>Бесплатных прогнозов: {app.wallet.forecastRewards}</strong>}
-          {app.wallet.coupons.length > 0 && <strong>Купонов на пакеты: {app.wallet.coupons.length}</strong>}
-        </div>
-      )}
+      <button className="profile-prizes-link" onClick={()=>app.open({type:"prizes"})}><Gift size={20}/><span><strong>Мои призы</strong><small>{app.wallet.prizes.length ? `Сохранено выигрышей: ${app.wallet.prizes.length}` : "Здесь будут ваши выигрыши"}</small></span><ChevronRight size={18}/></button>
+
     </section>
   );
 }
 
-export function FortuneWheel({ app, close }) {
-  const reduced = useReducedMotion();
-  const [rotation, setRotation] = useState(() => (360 - (app.wallet.spinHistory[0]?.index || 0) * 45) % 360), [spinning, setSpinning] = useState(false);
-  const [result, setResult] = useState(app.wallet.spinHistory[0] || null);
-  const [fresh, setFresh] = useState(false);
-  const pending = useRef(null), busy = useRef(false);
-  const finish = () => {
-    if (!pending.current) return;
-    setResult(pending.current);
-    setFresh(true);
-    pending.current = null;
-    busy.current = false;
-    setSpinning(false);
-    app.finishSpin();
-  };
-  const spin = () => {
-    if (busy.current) return;
-    const record = app.spin();
-    if (!record) return;
-    busy.current = true;
-    pending.current = record;
-    setResult(null);
-    const target = (360 - record.index * 45) % 360;
-    setRotation((prev) => prev + 5 * 360 + ((target - (prev % 360) + 360) % 360));
-    if (reduced) finish();
-    else setSpinning(true);
-  };
-  return (
-    <Modal title="Колесо фортуны" close={close} dismissible={!spinning} kind="benefits-modal wheel-modal dark-modal">
-      <div className="wheel-heading"><h1>Поймайте свой бонус</h1><p>Вращайте колесо за монеты и открывайте новые призы.</p></div>
-      <div className="wheel-balance"><Coin /> {app.wallet.balance} <span>монет у вас</span></div>
-      <div className="wheel-stage">
-        <span className="wheel-pointer" aria-hidden="true" />
-        <motion.div className="fortune-disk" initial={false} animate={{ rotate: rotation }} transition={{ duration: reduced ? 0 : 4.8, ease: [0.12, 0.7, 0.15, 1] }} onAnimationComplete={finish} aria-hidden="true">
-          {WHEEL_PRIZES.map((prize, i) => (
-            <span className="wheel-segment-label" key={prize.id} style={{ "--segment-angle": `${i * 45}deg` }}>
-              <span>{prize.kind === "coins" ? <Coin /> : prize.kind === "forecast" ? <Gift size={19} /> : <Ticket size={19} />}<strong>{prize.short}</strong></span>
-            </span>
-          ))}
-        </motion.div>
-        <span className="wheel-hub" aria-hidden="true"><img src="./images/diverge/mark.svg" alt="" /></span>
-      </div>
-      <div className="wheel-result" role="status" aria-live="polite">
-        {spinning ? <span>Колесо вращается…</span> : result ? <><small>{fresh ? "Ваш приз" : "Последний приз"}</small><strong>{result.prize.label}</strong><span>{!fresh ? "Результат сохранён в истории вращений" : result.prize.kind === "coins" ? "Монеты уже на балансе" : result.prize.kind === "forecast" ? "Выберите любой матч — доступ уже в профиле" : "Купон сохранён. Лучшая скидка применится к пакету."}</span></> : <span>Скидки, бесплатные прогнозы и монеты</span>}
-      </div>
-      <button className="m-button wheel-spin-button" disabled={spinning || app.wallet.balance < SPIN_COST} onClick={spin}>
-        {spinning ? "Вращаем…" : app.wallet.balance < SPIN_COST ? `Нужно ещё ${SPIN_COST - app.wallet.balance} монет` : `Крутить за ${SPIN_COST} монет`}
-      </button>
-      {!spinning && app.wallet.balance < SPIN_COST && <button className="text-button wheel-earn" onClick={() => app.open({ type: "rewards" })}>Получить монеты за вход</button>}
-    </Modal>
-  );
-}
+
 
 export function PromoSheet({ app, close }) {
   const [code, setCode] = useState(""), [result, setResult] = useState(null);
