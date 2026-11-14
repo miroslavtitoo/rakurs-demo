@@ -63,7 +63,7 @@ node scripts/check-build.mjs
 
 Push в `main` запускает GitHub Actions: `npm ci`, `npm test`, `npm run build`, публикация всего `dist` в Pages. Используются уникальное имя artifact для каждого run/attempt и ожидание его регистрации. Маршруты — hash; при другом хостинге нужно раздавать assets/fonts/images вместе с index.html и учитывать base path Vite. Бот-токен для публикации не нужен, адрес в BotFather менять не требуется; после деплоя переоткрыть Mini App.
 
-v8.2 опубликована успешно: [Actions 43583807744](https://github.com/miroslavtitoo/rakurs-demo/actions/runs/43583807744), commit 11e4801 (feature 87336c4). v9.1 опубликована: commit `aab7fc6`, [Actions 43589104764](https://github.com/miroslavtitoo/rakurs-demo/actions/runs/43589104764). На публичной версии прошли актуальные E2E с Telegram-only/контактом/миграцией старого входа, монетами/покупками/35 адаптивными страницами и Telegram fullscreen/native bridge; подробности в STATUS.md.
+v8.2 опубликована успешно: [Actions 43583807744](https://github.com/miroslavtitoo/rakurs-demo/actions/runs/43583807744), commit 11e4801 (feature 87336c4). v10 опубликована: commit `93eb543`, [Actions 43590563549](https://github.com/miroslavtitoo/rakurs-demo/actions/runs/43590563549). На публичной версии прошли актуальные E2E с колесом/призами/промокодом/приглашением и 35 страницами + 15 диалогами, а также настоящая анимация колеса/защита от повторного клика/reload; подробности в STATUS.md.
 
 ## План переноса и нагрузки — сервер 4 vCPU / ~8 ГБ / ~90 ГБ
 
