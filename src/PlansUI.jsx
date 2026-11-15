@@ -3,10 +3,10 @@ import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, Check, Sparkles, ShieldCheck, Ticket } from "lucide-react";
 import { prizeCountdown } from "./rewards.js";
 import { useSaved } from "./AssistantUI.jsx";
+import { OUTCOME_PACKAGES, FULL_PACKAGES } from "./plans.js";
 
-export const OUTCOME_PACKAGES = [{ count: 3, price: 29 }, { count: 5, price: 129 }, { count: 10, price: 259 }];
-export const FULL_PACKAGES = [{ count: 1, price: 199 }, { count: 3, price: 549 }, { count: 5, price: 899 }];
 const money = (n) => n.toLocaleString("ru-RU", { maximumFractionDigits: 2 });
+const unitMoney = (n) => n.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const matches = (n) => n === 1 ? "матч" : n < 5 ? "матча" : "матчей";
 
 export function CouponNotice({ app }) {
@@ -54,7 +54,7 @@ export function PlansContent({ app }) {
           <div className="pack-topline"><span>{["Для знакомства","В ритме спорта","На серию матчей"][i]}</span><span className="pack-check">{selected === i && <Check size={13}/>}</span></div>
           <h2>{pack.count} <span>{matches(pack.count)}</span></h2>
           <div className="pack-price"><strong>{money(quote.price)} <small>₽</small></strong>{quote.discount > 0 && <><del>{money(pack.price)} ₽</del><b>−{quote.discount}%</b></>}</div>
-          <span className="pack-unit">{money(quote.price / pack.count)} ₽ за прогноз</span>
+          <span className="pack-unit">{unitMoney(quote.price / pack.count)} ₽ за прогноз</span>
           <span className="pack-features"><Check size={13}/>{tier === "outcome" ? "Вероятности исходов" : "Факторы и чат с AI"}<span/><Check size={13}/>Матчи на ваш выбор</span>
         </motion.button>;
       })}

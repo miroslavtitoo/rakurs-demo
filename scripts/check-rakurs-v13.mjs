@@ -22,12 +22,12 @@ try {
   for(const button of buttons){const box=await button.boundingBox();expect(box.width).toBe(box.height);expect(Math.abs((box.y-n.y)-(n.y+n.height-box.y-box.height))).toBeLessThan(1);}
   await route("/subscription");
   const cards=page.locator(".polished-package");await expect(cards).toHaveCount(3);
-  for(const [i,price] of [[0,"9,67"],[1,"25,8"],[2,"25,9"]])await expect(cards.nth(i).locator(".pack-unit")).toContainText(price);
+  for(const [i,price] of [[0,"9,67"],[1,"7,80"],[2,"6,90"]])await expect(cards.nth(i).locator(".pack-unit")).toContainText(price);
   await expect(page.locator(".plans-offer")).toHaveCount(0);
   await expect(page.locator("main")).not.toContainText(/1 000|месяц|популярный|отзыв/i);
   await cards.nth(1).click();await page.getByRole("button",{name:/Купить пакет/}).click();
   await expect(page.getByRole("dialog")).toContainText("5 матчей");
-  await page.getByRole("button",{name:"Оплатить 129 ₽",exact:true}).click();
+  await page.getByRole("button",{name:"Оплатить 39 ₽",exact:true}).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.locator(".plans-owned")).toContainText("5");await page.reload();await expect(page.locator(".plans-owned")).toContainText("5");
   await route("/profile");await page.locator(".profile-wheel-card").click();

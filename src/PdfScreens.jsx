@@ -897,11 +897,6 @@ export function GeneralChat({ app }) {
 function ClockIcon() {
   return <MessageCircle size={18} />;
 }
-const packages = [
-  { count: 3, price: 29 },
-  { count: 5, price: 129 },
-  { count: 10, price: 259 },
-];
 export function ExtraModal({ modal, app, close }) {
   const type = modal.type;
   const [name, N] = useState(app.user?.name || "Участник"),
