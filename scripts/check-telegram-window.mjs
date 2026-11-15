@@ -83,7 +83,7 @@ try {
   ]) {
     const { context, page } = await create(width, height);
     await expect(
-      page.getByRole("dialog", { name: "Знакомство с Diverge" }),
+      page.getByRole("dialog", { name: "Знакомство с Rakurs" }),
     ).toBeVisible();
     await expect
       .poll(() =>

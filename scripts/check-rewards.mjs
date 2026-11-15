@@ -87,7 +87,7 @@ try {
   await page.setViewportSize({width:390,height:844});
   await page.evaluate(()=>{window.open=(url)=>{window.testTelegramLink=url;return null;};});
   await page.getByRole("button",{name:"Войти через Telegram",exact:true}).click();
-  await expect(page.getByRole("status")).toContainText("Откройте Diverge в Telegram");
+  await expect(page.getByRole("status")).toContainText("Откройте Rakurs в Telegram");
   expect(await page.evaluate(()=>window.testTelegramLink)).toBe("https://t.me/demobett_bot");
   await expect(page.locator("main")).toHaveCount(0);
   await page.goto(base);
@@ -231,11 +231,11 @@ try {
   await page
     .getByRole("button", { name: "Купить прогнозы", exact: true })
     .click();
-  await page.getByRole("button", { name: "Купить", exact: true }).click();
+  await page.getByRole("button", { name: /Купить пакет/ }).click();
   await expect(page.locator(".coupon-applied")).toContainText("30%");
   await expect(page.locator(".order-total")).toContainText("20 рублей");
   await shot("coupon-order");
-  await page.getByRole("button", { name: "Оплатить", exact: true }).click();
+  await page.getByRole("button", { name: "Оплатить 20 ₽", exact: true }).click();
   const state = await page.evaluate(() => ({
     wallet: JSON.parse(localStorage.getItem("rakurs:rewardsWallet")),
     transactions: JSON.parse(localStorage.getItem("rakurs:demoTransactions")),
@@ -294,13 +294,13 @@ try {
   await shot("referral");
   await close();
   await route("/subscription");
-  await page
-    .getByRole("button", { name: "Попробовать подписку", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Подключить подписку", exact: true })
-    .click();
-  await expect(page.locator(".subscription-active")).toBeVisible();
+  await expect(page.locator(".plans-grid .package-card")).toHaveCount(3);
+  await page.locator(".plans-grid .package-card").last().click();
+  await page.getByRole("button", { name:/Купить пакет/ }).click();
+  await expect(page.getByRole("dialog")).toContainText("10 матчей");
+  await page.getByRole("button", { name:/Оплатить/ }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.locator(".plans-owned")).toContainText("Осталось доступов");
   await clean();
   for (const [width, height] of [
     [320, 568],
@@ -384,7 +384,7 @@ try {
   await expect(page.locator(".analysis-dashboard")).toBeVisible();
   expect(errors).toEqual([]);
   console.log(
-    "PASS: mandatory onboarding, Telegram-only gate/contact consent/legacy migration, daily popup/claims/week=130, 10-coin wheel/forecast and coupon prizes, promo/duplicate/referral copy, news read states/replay, no retired labels, subscription/chat/factors, logout/deep-link gate and persistence and 35 responsive routes + 15 benefit modals.",
+    "PASS: mandatory onboarding, Telegram-only gate/contact consent/legacy migration, daily popup/claims/week=130, 10-coin wheel/forecast and coupon prizes, promo/duplicate/referral copy, news read states/replay, no retired labels, packages/chat/factors, logout/deep-link gate and persistence and 35 responsive routes + 15 benefit modals.",
   );
 } finally {
   await browser.close();

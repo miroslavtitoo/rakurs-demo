@@ -44,7 +44,8 @@ export function CoinButton({ app }) {
     </button>
   );
 }
-export function RewardSheet({ app, close }) {
+export function RewardSheet({ app, close, embedded = false }) {
+  const Sheet = embedded ? "div" : Modal;
   const dragStart = useRef(0);
   const [clock, setClock] = useState(app.now);
   useEffect(() => setClock(app.now), [app.now]);
@@ -59,10 +60,8 @@ export function RewardSheet({ app, close }) {
     B(true);
   };
   return (
-    <Modal
-      title="Монетки за вход"
-      close={close}
-      kind="reward-sheet dark-modal"
+    <Sheet
+      {...(embedded ? {className:"roulette-internal-overlay roulette-rewards reward-sheet dark-modal"} : {title:"Монетки за вход", close, kind:"reward-sheet dark-modal"})}
     >
       <div className="reward-content">
         <button
@@ -149,7 +148,7 @@ export function RewardSheet({ app, close }) {
             </button>
             <button
               className="reward-shop-link"
-              onClick={() => app.open({ type: "wheel" })}
+              onClick={() => embedded ? close() : app.open({ type: "wheel" })}
             >
               Колесо фортуны · {SPIN_COST} монет за вращение{" "}
               <ArrowRight size={15} />
@@ -175,7 +174,7 @@ export function RewardSheet({ app, close }) {
             )}
           </>
       </div>
-    </Modal>
+    </Sheet>
   );
 }
 export const NEWS_ITEMS = [
@@ -189,14 +188,14 @@ export const NEWS_ITEMS = [
   {
     id: "filters-v1",
     label: "Новости",
-    image: "news",
+    image: "story-football",
     title: "Находите свой матч",
     copy: "Выбирайте вид спорта, дату и статус. Сохраняйте интересные матчи, чтобы вернуться к ним позже.",
   },
   {
     id: "approach-v1",
     label: "Личные финансы",
-    image: "finance",
+    image: "trophies",
     title: "Смотрите глубже",
     copy: "Сравнивайте форму, очные встречи и составы. Нажмите на фактор, чтобы увидеть его вклад в прогноз.",
   },
@@ -204,7 +203,7 @@ export const NEWS_ITEMS = [
   {
     id: "sport-v1",
     label: "Ритм спорта",
-    image: "life",
+    image: "story-basketball",
     title: "В ритме спорта",
     copy: "Футбол, хоккей, баскетбол, теннис и киберспорт — все события в одном месте.",
   },
@@ -223,7 +222,7 @@ export function StoryRail({ app }) {
           onClick={() => app.openNews(i)}
         >
           <span className="story-news-picture">
-            <img src={`./images/diverge/${item.image}.webp`} alt="" />
+            {i === 0 ? <i className="story-tile-coins" aria-hidden="true"/> : <img className="story-tile-art" src={`./images/diverge/${item.image}.webp`} alt="" />}
             <span>{item.label}</span>
           </span>
         </button>
@@ -267,7 +266,7 @@ export function NewsStories({ app, index = 0, close }) {
   };
   const gestures = useStoryGestures(go, setHeld);
   return (
-    <Modal title="Истории Diverge" close={close} kind="news-stories dark-modal">
+    <Modal title="Истории Rakurs" close={close} kind="news-stories dark-modal">
       <div className="news-story-content" {...gestures}>
         <div className="news-story-progress">
           {NEWS_ITEMS.map((n, i) => (

@@ -25,7 +25,10 @@ export function prizeRoll(index) {
   const total = WHEEL_PRIZES.reduce((n,p) => n + p.weight, 0);
   return (WHEEL_PRIZES.slice(0,index).reduce((n,p) => n+p.weight,0) + WHEEL_PRIZES[index].weight / 2) / total;
 }
-export const PROMO_CODES = { DIVERGE10: { kind: "coins", amount: 10, label: "10 монет" } };
+export const PROMO_CODES = {
+  DIVERGE10: { kind: "coins", amount: 10, label: "10 монет", redemptionId:"welcome10" },
+  RAKURS10: { kind: "coins", amount: 10, label: "10 монет", redemptionId:"welcome10" },
+};
 export const emptyWallet = {
   balance: 0,
   streak: 0,
@@ -162,6 +165,7 @@ export function applyPromo(value, input, now = Date.now()) {
   if (w.usedPromoCodes.includes(code)) return { ok: false, message: "Этот промокод уже активирован" };
   const gift = PROMO_CODES[code];
   if (!gift) return { ok: false, message: "Промокод не найден. Проверьте написание." };
+  if(w.usedPromoCodes.some(c => PROMO_CODES[c]?.redemptionId === gift.redemptionId)) return { ok:false, message:"Этот промокод уже активирован" };
   return { ok: true, message: `Промокод активирован: +${gift.label}`, wallet: {
     ...w, balance: w.balance + gift.amount, usedPromoCodes: [...w.usedPromoCodes, code],
     history: [{ type: "promo", code, amount: gift.amount, day: rewardDay(now) }, ...w.history].slice(0,100),

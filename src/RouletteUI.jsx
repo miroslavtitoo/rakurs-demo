@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { animate, motion, useMotionValue, useMotionValueEvent, useReducedMotion, useTransform } from "motion/react";
 import { ArrowLeft, ArrowRight, Check, ChevronRight, Gift, Sparkles, X } from "lucide-react";
 import { Modal } from "./AssistantUI.jsx";
-import { Coin } from "./RewardsUI.jsx";
+import { Coin, RewardSheet } from "./RewardsUI.jsx";
 import { SPIN_COST, WHEEL_PRIZES, prizeCountdown, prizeState } from "./rewards.js";
 import "./roulette.css";
 
@@ -38,6 +38,8 @@ function ReelCard({ absolute, position, spacing }) {
 }
 
 function PrizeResult({ item, app, close, again, secondary = "Крутить ещё" }) {
+  const resultSurface=useRef(null);
+  useEffect(()=>{const frame=requestAnimationFrame(()=>resultSurface.current?.querySelector("button")?.focus({preventScroll:true}));return()=>cancelAnimationFrame(frame);},[]);
   const now = usePrizeClock(app.now), reduced=useReducedMotion(), [deviceInfo,setDeviceInfo]=useState(false);
   const current = app.wallet.prizes.find((p)=>p.id===item.id) || item;
   const status=prizeState(current,now), prize=item.prize;
@@ -54,7 +56,7 @@ function PrizeResult({ item, app, close, again, secondary = "Крутить ещ
     : prize.kind === "cash" ? "Сумма уже зачислена на баланс. Используйте её при покупке прогноза или пакета."
     : prize.kind === "coins" ? "Монеты уже на балансе. Можно продолжить и открыть следующий приз."
     : "Ваш приз сохранён в аккаунте. Вернуться к нему можно в разделе «Мои призы».";
-  return <motion.div className="roulette-result" initial={reduced ? false : {opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
+  return <motion.div ref={resultSurface} className="roulette-result" initial={reduced ? false : {opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
     <button className="roulette-close" aria-label="Закрыть выигрыш" onClick={close}><X size={23}/></button>
     <div className="result-art-stage">
       <div className="result-rays" aria-hidden="true" />
@@ -74,6 +76,8 @@ function PrizeResult({ item, app, close, again, secondary = "Крутить ещ
 }
 
 export function FortuneWheel({ app, close }) {
+  const [panel,setPanel] = useState(null);
+  useEffect(()=>{if(panel)return app.installBack(()=>{setPanel(null);return true;});},[panel]);
   const reduced=useReducedMotion(), unseen=app.wallet.prizes.find((p)=>p.revealedAt == null);
   const [phase,setPhase]=useState(unseen ? "result" : "idle"), [result,setResult]=useState(unseen || null);
   const position=useMotionValue(unseen?.index || 0), [center,setCenter]=useState(Math.floor(position.get()));
@@ -84,11 +88,11 @@ export function FortuneWheel({ app, close }) {
     measure(); const observer=new ResizeObserver(measure);observer.observe(stage.current);return()=>observer.disconnect();
   },[]);
   useEffect(()=>{
-    if (phase!=="idle" || reduced) return;
+    if (phase!=="idle" || reduced || panel) return;
     let frame,last=performance.now();
     const tick=(now)=>{if(!document.hidden)position.set(position.get()+Math.min(now-last,64)/4700);last=now;frame=requestAnimationFrame(tick);};
     frame=requestAnimationFrame(tick);return()=>cancelAnimationFrame(frame);
-  },[phase,reduced]);
+  },[phase,reduced,panel]);
   useEffect(()=>{if(phase==="result" && result)app.revealPrize(result.id);},[phase,result?.id]);
   useEffect(()=>()=>animation.current?.stop(),[]);
   const finish=()=>{
@@ -107,28 +111,41 @@ export function FortuneWheel({ app, close }) {
   const toIdle=()=>{setResult(null);setPhase("idle");};
   const spinning=phase==="spinning";
   return <Modal title="Рулетка призов" close={close} dismissible={!spinning} kind="roulette-screen dark-modal">
-    <div className="roulette-layout" data-phase={phase}>
-      <header className="roulette-header"><button className="roulette-back" aria-label="Закрыть" disabled={spinning} onClick={close}><ArrowLeft size={23}/></button><span>РУЛЕТКА ПРИЗОВ</span><button className="roulette-wallet" aria-label={`Монеты: ${app.wallet.balance}`} disabled={spinning} onClick={()=>app.open({type:"rewards"})}>{app.wallet.balance}<Coin/></button></header>
-      <div className="roulette-reel" ref={stage} data-phase={phase}>
+    <div className="roulette-layout" data-phase={phase} inert={panel ? true : undefined} aria-hidden={panel ? true : undefined}>
+      <header className="roulette-header" inert={phase === "result" ? true : undefined}><button className="roulette-back" aria-label="Закрыть" disabled={spinning} onClick={close}><ArrowLeft size={23}/></button><span>РУЛЕТКА ПРИЗОВ</span><span className="roulette-wallet" aria-label={`Монеты: ${app.wallet.balance}`}>{app.wallet.balance}<Coin/></span></header>
+      <div className="roulette-reel" inert={phase === "result" ? true : undefined} ref={stage} data-phase={phase}>
         <div className="roulette-aura" aria-hidden="true"/>
         <div className="reel-cards">{Array.from({length:7},(_,i)=>center+i-3).map((i)=><ReelCard key={i} absolute={i} position={position} spacing={spacing}/>)}</div>
         <div className="reel-selectors" aria-hidden="true"><span/><span/></div>
-        <div className="roulette-side-actions"><button disabled={spinning} onClick={()=>app.open({type:"prizes",catalogue:true,returnTo:"wheel"})}><Gift size={23}/><span>Призы</span></button><button disabled={spinning} onClick={()=>app.open({type:"rewards"})}><Coin/><span>Монетки</span></button></div>
+        <div className="roulette-side-actions"><button disabled={spinning} onClick={()=>setPanel("prizes")}><Gift size={23}/><span>Призы</span></button></div>
         {spinning && !reduced && <div className="roulette-speed-lines" aria-hidden="true">{Array.from({length:14},(_,i)=><i key={i} style={{"--line":i}}/>)}</div>}
       </div>
-      <footer className="roulette-footer"><button className="m-button wheel-spin-button" disabled={spinning || app.wallet.balance < SPIN_COST} onClick={spin}>{spinning ? "Открываем ваш приз…" : <>Вращать <span>{SPIN_COST}<Coin/></span></>}</button>{app.wallet.balance < SPIN_COST && !spinning ? <button className="roulette-earn" onClick={()=>app.open({type:"rewards"})}>Получить монеты за вход <ChevronRight size={14}/></button> : <p>Каждый выигрыш сохраняется в профиле</p>}<div className="roulette-legal"><button onClick={()=>app.openLegal("terms")} disabled={spinning}>Условия использования</button><span>·</span><button onClick={()=>app.openLegal("privacy")} disabled={spinning}>Конфиденциальность</button></div></footer>
+      <footer className="roulette-footer" inert={phase === "result" ? true : undefined}><button className="m-button wheel-spin-button" disabled={spinning || app.wallet.balance < SPIN_COST} onClick={spin}>{spinning ? "Открываем ваш приз…" : <>Вращать <span>{SPIN_COST}<Coin/></span></>}</button>{app.wallet.balance < SPIN_COST && !spinning ? <button className="roulette-earn" onClick={()=>setPanel("rewards")}>Получить монеты за вход <ChevronRight size={14}/></button> : <p>Каждый выигрыш сохраняется в профиле</p>}<div className="roulette-legal"><button onClick={()=>app.openLegal("terms")} disabled={spinning}>Условия использования</button><span>·</span><button onClick={()=>app.openLegal("privacy")} disabled={spinning}>Конфиденциальность</button></div></footer>
       {phase==="result" && result && <PrizeResult key={result.id} item={result} app={app} close={close} again={toIdle} secondary="К рулетке"/>}
     </div>
+    {panel === "prizes" && <PrizeCollection app={app} close={()=>setPanel(null)} catalogue embedded/>}
+    {panel === "rewards" && <RewardSheet app={app} close={()=>setPanel(null)} embedded/>}
   </Modal>;
 }
 
-export function PrizeCollection({ app, close, catalogue=false }) {
+export function PrizeCollection({ app, close, catalogue=false, embedded=false }) {
   const [tab,setTab]=useState(catalogue ? "catalogue" : "mine"), [selected,setSelected]=useState(null), now=usePrizeClock(app.now);
-  if(selected)return <Modal title="Ваш выигрыш" close={()=>setSelected(null)} kind="roulette-screen dark-modal"><PrizeResult item={selected} app={app} close={()=>setSelected(null)} again={()=>{app.open({type:"wheel"});}}/></Modal>;
-  return <Modal title="Мои призы" close={close} kind="prize-collection dark-modal">
-    <h1>Ваши открытия</h1><p className="prize-collection-intro">Сохранённые выигрыши всегда под рукой.</p>
+  useEffect(()=>{if(selected)return app.installBack(()=>{setSelected(null);return true;});},[selected]);
+  const surface = useRef(null);
+  useEffect(()=>{
+    if(!embedded)return;
+    const previous=document.activeElement;
+    surface.current?.querySelector("button")?.focus({preventScroll:true});
+    return()=>{if(previous?.isConnected)previous.focus({preventScroll:true});};
+  },[embedded,selected]);
+  const Container = embedded ? "div" : Modal;
+  const containerProps = embedded ? {ref:surface,className:"roulette-internal-overlay prize-collection dark-modal"} : {title:"Мои призы",close,kind:"prize-collection dark-modal"};
+  if(selected)return <Container {...(embedded ? containerProps : {title:"Ваш выигрыш",close:()=>setSelected(null),kind:"roulette-screen dark-modal"})}><PrizeResult item={selected} app={app} close={()=>setSelected(null)} again={()=>{embedded ? close() : app.open({type:"wheel"});}}/></Container>;
+  return <Container {...containerProps}>
+    {embedded && <button className="roulette-panel-back" onClick={close}><ArrowLeft size={18}/>К рулетке</button>}
+    <h1>{tab === "catalogue" ? "Внутри рулетки" : "Ваши открытия"}</h1><p className="prize-collection-intro">{tab === "catalogue" ? "Скидки, прогнозы, монеты и главные призы." : "Сохранённые выигрыши всегда под рукой."}</p>
     <div className="pdf-chips prize-tabs"><button aria-pressed={tab==="mine"} onClick={()=>setTab("mine")}>Мои призы · {app.wallet.prizes.length}</button><button aria-pressed={tab==="catalogue"} onClick={()=>setTab("catalogue")}>В рулетке</button></div>
     <div className="prize-grid">{tab==="catalogue" ? WHEEL_PRIZES.map((prize)=><div className="prize-grid-card" key={prize.id}><PrizeArt prize={prize} small/><strong>{prize.label}</strong><small>{prize.duration ? prize.kind==="coupon" ? "Действует 24 часа" : "Доступен 7 дней" : prize.kind==="device" ? "Главный приз" : "Начисляется на баланс"}</small></div>) : app.wallet.prizes.map((item)=><button className={`prize-grid-card state-${prizeState(item,now)}`} key={item.id} onClick={()=>setSelected(item)}><PrizeArt prize={item.prize} small/><strong>{item.prize.label}</strong><small>{prizeState(item,now)==="expired" ? "Срок истёк" : prizeState(item,now)==="used" ? "Использован" : item.expiresAt ? prizeCountdown(item.expiresAt,now) : item.prize.kind==="coins" || item.prize.kind==="cash" ? "Зачислено" : "Сохранён"}</small><ChevronRight size={14}/></button>)}</div>
     {tab==="mine" && !app.wallet.prizes.length && <div className="prize-empty"><Sparkles size={32}/><h2>Первое открытие впереди</h2><p>Вращайте рулетку за монеты — выигрыш появится здесь.</p><button className="m-button" onClick={()=>app.open({type:"wheel"})}>К рулетке</button></div>}
-  </Modal>;
+  </Container>;
 }

@@ -55,7 +55,7 @@ function Modal({ title, close, children, kind = "", dismissible = true }) {
         ...panel.current.querySelectorAll(
           'button:not([disabled]),a,input,select,[tabindex="0"]',
         ),
-      ].filter((n) => n.getClientRects().length);
+      ].filter((n) => n.getClientRects().length && !n.closest("[inert]"));
       const first = nodes[0],
         last = nodes.at(-1);
       if (!first) {

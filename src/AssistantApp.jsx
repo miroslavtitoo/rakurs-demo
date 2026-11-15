@@ -45,7 +45,7 @@ import {
   GeneralChat,
   ExtraModal,
   EventOrder,
-  DivergeLogo,
+  RakursLogo,
 } from "./PdfScreens.jsx";
 import TeamMark from "./TeamMark.jsx";
 import AIOrb from "./AIOrb.jsx";
@@ -69,6 +69,8 @@ import "./assistantDesign.css";
 import "./pdfDesign.css";
 import "./mobilePolish.css";
 import "./rewards.css";
+import "./rakursPolish.css";
+import { PlansContent, CouponNotice } from "./PlansUI.jsx";
 import { assistantText } from "./presentation.js";
 import { LegalDocument } from "./LegalUI.jsx";
 import { PromoSheet, ReferralSheet } from "./BenefitsUI.jsx";
@@ -298,7 +300,7 @@ function Catalog({ app, initialStatus = "all", library = false }) {
           >
             <Ticket size={17} />
             <span>
-              Все прогнозы<strong>1 000 ₽ / месяц</strong>
+              Пакеты прогнозов<strong>От 29 ₽</strong>
             </span>
             <ArrowUpRight size={16} />
           </button>
@@ -420,7 +422,7 @@ function Paywall({ event: e, app }) {
     <section className="analysis-paywall">
       <AIOrb compact />
       <span className="m-eyebrow">
-        <Sparkles size={14} /> DIVERGE AI
+        <Sparkles size={14} /> RAKURS AI
       </span>
       <h2>
         Откройте
@@ -447,7 +449,7 @@ function Paywall({ event: e, app }) {
         <ArrowRight size={19} />
       </button>
       <button className="text-button" onClick={() => app.go("/subscription")}>
-        Все события за 1 000 ₽ / месяц
+        Выбрать пакет прогнозов
         <ArrowUpRight size={15} />
       </button>
     </section>
@@ -905,7 +907,7 @@ function EventChat({ event: e, close }) {
         <div className="assistant-chat-bubble">
           <span>
             <Sparkles size={12} />
-            Diverge AI
+            Rakurs AI
           </span>
           <p>
             Разберём {e.home} — {e.away}. Моя предматчевая оценка —{" "}
@@ -929,7 +931,7 @@ function EventChat({ event: e, close }) {
             {m.role === "assistant" && (
               <span>
                 <Sparkles size={12} />
-                Diverge AI
+                Rakurs AI
               </span>
             )}
             <p>{m.role === "assistant" ? assistantText(m.text) : m.text}</p>
@@ -972,105 +974,7 @@ function EventChat({ event: e, close }) {
   );
 }
 
-function Subscription({ app }) {
-  const active = !!app.user && activeSubscription(app.subscription, app.now);
-  return (
-    <div className="subscription-page">
-      <div className="page-heading">
-        <span className="m-eyebrow">БОЛЬШЕ СОБЫТИЙ. ОДИН ДОСТУП.</span>
-        <h1>Ваш сезон с AI.</h1>
-        <p>Один прогноз за 199 ₽ или все события по подписке.</p>
-      </div>
-      <div className="subscription-layout">
-        <section className="subscription-card">
-          <div className="subscription-symbol">
-            <Sparkles size={34} />
-          </div>
-          <span className="small-demo">DIVERGE PLUS </span>
-          <h2>{active ? "Все прогнозы открыты" : "Каждый матч — в деталях"}</h2>
-          <p>Футбол, киберспорт, теннис, баскетбол и хоккей.</p>
-          <div className="subscription-price">
-            1 000 ₽<span>/ месяц</span>
-          </div>
-          <ul>
-            {[
-              "Все события без отдельных покупок",
-              "Полные дашборды и объяснения",
-              "Чат по каждому событию",
-              "История предматчевых прогнозов",
-            ].map((t) => (
-              <li key={t}>
-                <CheckCircle2 size={17} />
-                {t}
-              </li>
-            ))}
-          </ul>
-          {active ? (
-            <>
-              <div className="subscription-active">
-                <CheckCircle2 size={17} />
-                Доступ до{" "}
-                {new Date(app.subscription.expiresAt).toLocaleDateString(
-                  "ru-RU",
-                )}
-              </div>
-              <button className="m-button" onClick={() => app.go("/")}>
-                Выбрать событие
-                <ArrowRight size={17} />
-              </button>
-              <button
-                className="text-button end-subscription"
-                onClick={app.endSubscription}
-              >
-                Завершить подписку
-              </button>
-            </>
-          ) : (
-            <button
-              className="m-button subscribe-button"
-              onClick={app.subscribe}
-            >
-              Попробовать подписку
-              <ArrowRight size={17} />
-            </button>
-          )}
-          <small>
-            Купленные отдельно прогнозы остаются после завершения подписки.
-          </small>
-        </section>
-        <div className="subscription-faq">
-          <h2>Всё просто</h2>
-          {[
-            [
-              "Что открывает подписка?",
-              "Все события каталога: будущие, текущие и завершённые. Их анализ и чаты доступны в течение месяца.",
-            ],
-            [
-              "Нужно привязывать карту?",
-              "Выберите удобный способ оплаты при оформлении заказа.",
-            ],
-            [
-              "Что будет через месяц?",
-              "Подписка завершится. Отдельно купленные прогнозы останутся в ваших материалах.",
-            ],
-            [
-              "Где посмотреть источники?",
-              "Источники, время и выборка указаны в карточках факторов.",
-            ],
-          ].map(([q, a]) => (
-            <details key={q}>
-              <summary>
-                {q}
-                <ChevronRight size={15} />
-              </summary>
-              <p>{a}</p>
-            </details>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+function Subscription({ app }) { return <PlansContent app={app}/>; }
 
 export default function AssistantApp() {
   const reduced = useReducedMotion();
@@ -1092,6 +996,7 @@ export default function AssistantApp() {
   const [readNews, setReadNews] = useSaved("readNews", []);
   const wallet = normalizeWallet(savedWallet);
   const purchaseBusy = useRef(false);
+  const innerBack = useRef([]);
   const [credits, setCredits] = useSaved("analysisCredits", 0);
   const [outcomeCredits, setOutcomeCredits] = useSaved("outcomeCredits", 0);
   const [outcomes, setOutcomes] = useSaved("outcomePurchases", []);
@@ -1114,8 +1019,9 @@ export default function AssistantApp() {
       document.documentElement.dataset.editing = String(!!el?.matches("input:not([readonly]),textarea,[contenteditable='true']"));
     };
     document.addEventListener("focusin", sync);
-    document.addEventListener("focusout", sync);
-    return () => { document.removeEventListener("focusin",sync); document.removeEventListener("focusout",sync); delete document.documentElement.dataset.editing; };
+    const afterBlur = () => requestAnimationFrame(sync);
+    document.addEventListener("focusout", afterBlur);
+    return () => { document.removeEventListener("focusin",sync); document.removeEventListener("focusout",afterBlur); delete document.documentElement.dataset.editing; };
   }, []);
   useEffect(() => initTelegram(), []);
   useEffect(() => {
@@ -1168,6 +1074,8 @@ export default function AssistantApp() {
     haptic();
   };
   function close() {
+    if (modal?.type === "wheel" && purchaseBusy.current) return;
+    if (innerBack.current.at(-1)?.handler()) return;
     if (modal?.type === "prizes" && modal.returnTo === "wheel") { setModal({type:"wheel"}); return; }
     if (modal?.type === "legal") {
       setModal(modal.returnTo || (seen !== true ? {type:"stories"} : user ? null : {type:"auth"}));
@@ -1226,6 +1134,11 @@ export default function AssistantApp() {
     wallet,
     readNews,
     dismiss: () => setModal(null),
+    installBack: (handler) => {
+      const entry = {handler};
+      innerBack.current.push(entry);
+      return () => { innerBack.current = innerBack.current.filter(e => e !== entry); };
+    },
     openLegal: (document) => setModal({ type: "legal", document, returnTo: modal }),
     open: (next) => {
       if (next.type === "rewards")
@@ -1277,7 +1190,7 @@ export default function AssistantApp() {
     loginTelegram: () => {
       const account = telegramAccount(window.Telegram?.WebApp);
       if (!account) {
-        setAuthHint("Откройте Diverge в Telegram и нажмите кнопку входа.");
+        setAuthHint("Откройте Rakurs в Telegram и нажмите кнопку входа.");
         const link = "https://t.me/demobett_bot";
         if (isTelegramWebApp()) window.Telegram.WebApp.openTelegramLink(link);
         else window.open(link, "_blank", "noopener,noreferrer");
@@ -1391,7 +1304,7 @@ export default function AssistantApp() {
     chat: (e) => {
       if (access(e.id)) setModal({ type: "chat", event: e });
     },
-    subscribe: () => requireLogin({ type: "subscribe" }),
+    subscribe: () => requireLogin({ type: "plans" }),
     endSubscription: () => {
       setSubscription(null);
       setToast("Подписка завершена. Отдельные покупки сохранены.");
@@ -1444,7 +1357,7 @@ export default function AssistantApp() {
         </a>
         <header className="market-header">
           <div>
-            <DivergeLogo onClick={() => go("/")} />
+            <RakursLogo onClick={() => go("/")} />
             <PdfNav route={route} go={go} />
             <CoinButton app={app} />
             <button
@@ -1503,7 +1416,7 @@ export default function AssistantApp() {
         </main>
         <footer className="market-footer">
           <span>
-            DIVERGE<span>AI</span>
+            RAKURS<span>AI</span>
           </span>
           <p>
             18+
@@ -1512,6 +1425,7 @@ export default function AssistantApp() {
           </p>
         </footer>
         <PdfNav route={route} go={go} bottom />
+        {!modal && route !== "/subscription" && route !== "/chat" && <CouponNotice app={app}/>}
         </>}
       </div>
       <AnimatePresence>
@@ -1578,38 +1492,7 @@ export default function AssistantApp() {
             confirm={unlock}
           />
         ) : modal?.type === "subscribe" ? (
-          <Modal title="Подписка Diverge Plus" close={close}>
-            <div className="checkout-content">
-              <div className="checkout-pick">
-                <span>Один месяц · все события</span>
-                <h2>Анализ и чат без отдельных покупок.</h2>
-              </div>
-              <div className="checkout-total">
-                <span>Один месяц доступа</span>
-                <strong>{currency(MONTH_PRICE)}</strong>
-              </div>
-              <div className="checkout-demo">
-                <ShieldCheck size={18} />
-                <p>
-                  <strong>Подписка</strong>
-                  <span>Один месяц доступа ко всем событиям.</span>
-                </p>
-              </div>
-              <button
-                className="m-button confirm-subscription"
-                onClick={() => {
-                  record("Подписка на месяц", -MONTH_PRICE);
-                  setSubscription(subscriptionMonth());
-                  setNow(Date.now());
-                  setModal(null);
-                  setToast("Подписка активна. Все прогнозы и чаты открыты.");
-                }}
-              >
-                Подключить подписку
-                <ArrowRight size={17} />
-              </button>
-            </div>
-          </Modal>
+          <Modal title="Пакеты прогнозов" close={close} kind="extra-modal dark-modal"><PlansContent app={app}/></Modal>
         ) : modal && !modalHasAccess ? (
           <Modal title="Доступ завершён" close={close}>
             <div className="about-content">

@@ -62,7 +62,7 @@ try {
     );
     await page
       .locator(".bottom-nav")
-      .getByRole("button", { name: "Подписки" })
+      .getByRole("button", { name: "Пакеты" })
       .click();
     await expect(page.locator("main > [data-route]")).toHaveAttribute(
       "data-route",

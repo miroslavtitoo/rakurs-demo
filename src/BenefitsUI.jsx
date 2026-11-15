@@ -48,7 +48,7 @@ export function ReferralSheet({ app, close }) {
   return (
     <Modal title="Пригласить друзей" close={close} kind="benefits-modal dark-modal">
       <div className="benefit-large-icon"><Users size={32} /></div>
-      <h1>Вместе интереснее</h1><p className="benefit-description">Отправьте другу свою ссылку на Diverge.</p>
+      <h1>Вместе интереснее</h1><p className="benefit-description">Отправьте другу свою ссылку на Rakurs.</p>
       <label className="referral-label" htmlFor="referral-link">Ваша ссылка</label>
       <input className="referral-link" id="referral-link" readOnly value={link || ""} onFocus={(e) => e.target.select()} />
       <button className="m-button referral-copy" onClick={copy} disabled={!link}>{copied ? <Check size={18} /> : <Copy size={18} />}{copied ? "Ссылка скопирована" : "Скопировать ссылку"}</button>

@@ -48,7 +48,7 @@ function SportsCards({ reduced, paused }) {
           initial={
             reduced
               ? false
-              : { opacity: 0, x: 0, y: 160, rotate: 0, scale: 0.86 }
+              : { opacity: 0, x: 0, y: 100, rotate: 0, scale: 0.97 }
           }
           animate={{
             opacity: 1,
@@ -60,13 +60,13 @@ function SportsCards({ reduced, paused }) {
           transition={
             reduced
               ? { duration: 0 }
-              : { duration: 1.3, delay: c.delay, ease: [0.16, 1, 0.3, 1] }
+              : { duration: 1.65, delay: c.delay, ease: [0.22, 1, 0.36, 1] }
           }
         >
           <div
             className="story-card-float"
             style={{
-              animationDelay: `${1.5 + i * 0.15}s`,
+              animationDelay: `${2.05 + i * 0.15}s`,
               animationPlayState: paused ? "paused" : "running",
             }}
           >
@@ -96,7 +96,7 @@ function AnalysisOrbit({ reduced, paused }) {
     <div className="story-orbit-composition">
       <motion.div
         className="story-orbit-center"
-        initial={reduced ? false : { scale: 0.6, opacity: 0 }}
+        initial={reduced ? false : { scale: 0.88, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: reduced ? 0 : 1.0, ease }}
       >
@@ -271,9 +271,9 @@ function ChatSculpture({ reduced, paused }) {
           key={i}
           className="story-glass-column"
           style={{ left: `calc(50% + ${c.x}px)`, height: c.h, top: 50 + c.y }}
-          initial={reduced ? false : { opacity: 0, y: 80, scaleY: 0.88 }}
+          initial={reduced ? false : { opacity: 0, y: 42, scaleY: 0.97 }}
           animate={{ opacity: 1, y: 0, scaleY: 1 }}
-          transition={{ duration: reduced ? 0 : 1.2, delay: i * 0.12, ease }}
+          transition={{ duration: reduced ? 0 : 1.5, delay: i * 0.1, ease }}
         >
           <div
             style={{
@@ -286,7 +286,7 @@ function ChatSculpture({ reduced, paused }) {
       <motion.div
         className="story-chat-symbol"
         initial={
-          reduced ? false : { opacity: 0, y: 65, rotateY: -18, scale: 0.8 }
+          reduced ? false : { opacity: 0, y: 35, rotateY: 0, scale: 0.96 }
         }
         animate={{ opacity: 1, y: 0, rotateY: 0, scale: 1 }}
         transition={{ duration: reduced ? 0 : 1, delay: 0.35, ease }}

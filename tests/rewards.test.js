@@ -92,6 +92,10 @@ test("Promo codes normalize, apply once and reject unknown/empty codes without a
   assert.equal(result.ok,true);
   assert.equal(result.wallet.balance,10);
   assert.equal(applyPromo(result.wallet,"DIVERGE10",start).ok,false);
+  assert.equal(applyPromo(result.wallet,"RAKURS10",start).ok,false);
+  const renamed=applyPromo(emptyWallet," rakurs10 ",start);
+  assert.equal(renamed.wallet.balance,10);
+  assert.equal(applyPromo(renamed.wallet,"DIVERGE10",start).ok,false);
   assert.equal(referralLink(123456),"https://t.me/demobett_bot?startapp=ref_123456");
   assert.equal(referralLink(null),null);
 });

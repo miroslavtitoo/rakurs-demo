@@ -80,3 +80,16 @@
   .roulette-result .roulette-close{top:calc(12px + max(env(safe-area-inset-top),var(--tg-top)))}
 }
 @media(prefers-reduced-motion:reduce){.result-star,.result-sparkles span,.roulette-speed-lines i{animation:none!important}.result-sparkles{display:none}}
+
+/* A compact art/label group stays inside each reel pitch. */
+.reel-card{width:min(63vw,280px);height:min(63vw,280px);margin-left:calc(min(63vw,280px)/-2);margin-top:calc(min(63vw,280px)/-2)}
+.reel-card>.prize-art{position:absolute;top:-5%;left:0;width:100%}
+.reel-prize-name{position:absolute;top:87%;left:0;right:0;margin:0 auto;font-family:inherit;font-size:12px;font-weight:600;line-height:1.35;color:#f0dffb;text-wrap:balance;padding:5px 10px;max-width:95%;border:1px solid #cf8eeb22;border-radius:10px;background:#210f3599;box-shadow:0 5px 18px #0b061722}
+.reel-card .prize-value-tag{display:none}
+.roulette-internal-overlay{position:absolute;inset:0;z-index:25;overflow-y:auto;overscroll-behavior:contain;padding:24px;background:linear-gradient(155deg,#291439,#100b23 65%);animation:roulette-panel-enter .45s cubic-bezier(.22,1,.36,1) both;scrollbar-width:thin}
+.roulette-panel-back{display:inline-flex;align-items:center;gap:8px;margin:0 0 22px;padding:9px 12px;border:1px solid #c184e82b;border-radius:18px;color:#dec1ef;font-size:12px;min-height:38px}
+.prize-grid-card .prize-value-tag{display:none}.prize-tabs button{background:#21162e!important;color:#b9a3c9!important}.prize-tabs button[aria-pressed=true]{background:#eee6f8!important;color:#261538!important}
+.roulette-internal-overlay.prize-collection h1{font-size:30px}.roulette-internal-overlay .prize-grid-card .prize-art{max-width:150px}.roulette-internal-overlay .prize-grid-card strong{font-size:12px}.roulette-rewards.reward-sheet{width:100%;max-height:none;border-radius:0;padding:26px 22px}.roulette-rewards .reward-content{padding-top:0}.roulette-rewards .reward-drag-handle{margin-bottom:18px}
+@keyframes roulette-panel-enter{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:760px){.roulette-internal-overlay{padding:calc(20px + var(--tg-top,0px)) 20px max(24px,var(--tg-bottom,0px))}.roulette-rewards.reward-sheet{padding-top:calc(22px + var(--tg-top,0px))}}
+@media(prefers-reduced-motion:reduce){.roulette-internal-overlay{animation:none}}

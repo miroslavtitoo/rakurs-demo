@@ -1,3 +1,4 @@
+import { PlansContent } from "./PlansUI.jsx";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { flushSync } from "react-dom";
@@ -37,15 +38,15 @@ import { ProfileBenefits } from "./BenefitsUI.jsx";
 import { assistantText, operationLabel } from "./presentation.js";
 export const SPORT_EMOJI = { "Футбол": "⚽", "Киберспорт": "🎮", "Теннис": "🎾", "Баскетбол": "🏀", "Хоккей": "🏒" };
 const img = (n) => `./images/diverge/${n}.webp`;
-export function DivergeLogo({ onClick }) {
+export function RakursLogo({ onClick }) {
   const Tag = onClick ? "button" : "span";
   return (
     <Tag
       className="diverge-logo"
       onClick={onClick}
-      aria-label={onClick ? "Diverge — главная" : undefined}
+      aria-label={onClick ? "Rakurs — главная" : undefined}
     >
-      <img src="./images/diverge/logo.svg" alt="DIVERGE" />
+      <img src="./images/rakurs/logo.svg" alt="RAKURS" />
     </Tag>
   );
 }
@@ -107,7 +108,7 @@ export function PdfStories({ close }) {
     initial: reduced ? false : { opacity: 0, y },
     animate: { opacity: 1, y: 0 },
     transition: {
-      duration: reduced ? 0 : 0.58,
+      duration: reduced ? 0 : 0.75,
       delay: reduced ? 0 : delay,
       ease: [0.22, 1, 0.36, 1],
     },
@@ -115,7 +116,7 @@ export function PdfStories({ close }) {
   const gestures = useStoryGestures(change, H);
   return (
     <Modal
-      title="Знакомство с Diverge"
+      title="Знакомство с Rakurs"
       close={close}
       kind="pdf-stories dark-modal"
       dismissible={false}
@@ -125,7 +126,7 @@ export function PdfStories({ close }) {
         data-step={step}
         {...gestures}
       >
-        <DivergeLogo onClick={() => S(0)} />
+        <RakursLogo onClick={() => S(0)} />
         <div className="pdf-progress">
           {slides.map((_, i) => (
             <button
@@ -154,13 +155,13 @@ export function PdfStories({ close }) {
           <StoryArt step={step} paused={pause || held} key={step} />
         </div>
         <div className="pdf-story-copy" key={"copy-" + step}>
-          <motion.h1 {...reveal(0.88, 25)}>{slides[step][0]}</motion.h1>
-          <motion.p {...reveal(1.08, 16)}>{slides[step][1]}</motion.p>
+          <motion.h1 {...reveal(1.15, 16)}>{slides[step][0]}</motion.h1>
+          <motion.p {...reveal(1.4, 10)}>{slides[step][1]}</motion.p>
         </div>
         <motion.div
           className="pdf-story-actions"
           key={"actions-" + step}
-          {...reveal(1.32, 12)}
+          {...reveal(1.65, 8)}
         >
           <button className="m-button" onClick={() => change(1)}>
             Далее <ArrowRight size={17} />
@@ -172,12 +173,12 @@ export function PdfStories({ close }) {
 }
 export function AuthScreen({ app }) {
   return (
-    <Modal title="Вход в Diverge" close={() => {}} dismissible={false} kind="auth-modal dark-modal">
+    <Modal title="Вход в Rakurs" close={() => {}} dismissible={false} kind="auth-modal dark-modal">
       <div className="auth-screen telegram-only-entry">
-        <DivergeLogo />
+        <RakursLogo />
         <div className="auth-intro">
-          <img className="huge-symbol" src="./images/diverge/mark.svg" alt="" />
-          <h1 className="diverge-word">DIVERGE</h1>
+          <img className="huge-symbol" src="./images/rakurs/mark.svg" alt="" />
+          <h1 className="diverge-word">RAKURS</h1>
           <p>
             ИИ-помощник для анализа матчей,<br />
             статистики игроков и интеллектуальных<br />
@@ -207,7 +208,7 @@ export function PdfNav({ route, go, bottom = false }) {
     >
       {[
         ["/", "Главная", LayoutGrid],
-        ["/subscription", "Подписки", Heart],
+        ["/subscription", "Пакеты", Heart],
         ["/chat", "Чат", MessageCircle],
       ].map(([p, l, I]) => (
         <button
@@ -797,6 +798,18 @@ export function GeneralChat({ app }) {
   const [input, I] = useState(""),
     [messages, M] = useSaved("generalChat", []);
   const log = useRef(null);
+  const surface = useRef(null);
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    const measure = () => {
+      if (!surface.current) return;
+      surface.current.style.setProperty("--chat-vh", `${viewport?.height || window.innerHeight}px`);
+      surface.current.style.setProperty("--chat-offset", `${viewport?.offsetTop || 0}px`);
+      surface.current.dataset.keyboard = String((viewport?.height || window.innerHeight) < window.innerHeight - 120);
+    };
+    measure(); viewport?.addEventListener("resize",measure); viewport?.addEventListener("scroll",measure); window.addEventListener("resize",measure);
+    return () => { viewport?.removeEventListener("resize",measure); viewport?.removeEventListener("scroll",measure); window.removeEventListener("resize",measure); };
+  }, []);
   useEffect(() => {
     log.current?.scrollTo(0, log.current.scrollHeight);
   }, [messages]);
@@ -818,7 +831,12 @@ export function GeneralChat({ app }) {
     I("");
   }
   return (
-    <div className="general-chat">
+    <div className="general-chat" ref={surface} data-thinking={input.length > 0} onPointerDown={(e)=>{
+      const box=e.currentTarget.getBoundingClientRect();
+      e.currentTarget.style.setProperty("--mind-x", `${(e.clientX-box.left)/box.width*100}%`);
+      e.currentTarget.style.setProperty("--mind-y", `${(e.clientY-box.top)/box.height*100}%`);
+    }}>
+      <div className="chat-mind" aria-hidden="true"><i/><i/><i/></div>
       <div className="chat-page-title">
         <button
           className="m-icon"
@@ -827,7 +845,7 @@ export function GeneralChat({ app }) {
         >
           <ClockIcon />
         </button>
-        <span>Diverge AI</span>
+        <span>Rakurs AI</span>
         <button
           className="m-icon"
           aria-label="Закрыть чат"
@@ -836,7 +854,7 @@ export function GeneralChat({ app }) {
           <X size={19} />
         </button>
       </div>
-      <div className="general-chat-log" ref={log}>
+      <div className="general-chat-log" ref={log} role="log" aria-label="Переписка с AI" aria-live="polite">
         {messages.length ? (
           messages.map((m, i) => (
             <div key={i} className={"general-message " + m.role}>
@@ -844,11 +862,7 @@ export function GeneralChat({ app }) {
             </div>
           ))
         ) : (
-          <h1>
-            Привет, чем
-            <br />
-            могу помочь?
-          </h1>
+          <div className="chat-welcome"><span className="chat-welcome-mark"><img src="./images/rakurs/mark.svg" alt=""/></span><span>НОВЫЙ РАКУРС НА ИГРУ</span><h1>Давайте<br/>разберём матч.</h1><p>Выберите спорт или задайте вопрос</p></div>
         )}
       </div>
       <form onSubmit={send}>
@@ -914,8 +928,8 @@ export function ExtraModal({ modal, app, close }) {
     faq: "Вопросы и ответы",
     support: "Служба поддержки",
     language: "Выбор языка",
-    news: "Новости Diverge",
-    chatIntro: "Diverge AI",
+    news: "Новости Rakurs",
+    chatIntro: "Rakurs AI",
   };
   const pay = () => {
     app.topup(Number(amount));
@@ -935,7 +949,7 @@ export function ExtraModal({ modal, app, close }) {
   );
   return (
     <Modal
-      title={titles[type] || "Diverge"}
+      title={titles[type] || "Rakurs"}
       close={close}
       kind={`${white ? "white-sheet" : "dark-modal"} extra-modal ${type === "gift" ? "gift-modal" : ""}`}
     >
@@ -964,91 +978,7 @@ export function ExtraModal({ modal, app, close }) {
             </button>
           </>
         ) : type === "plans" ? (
-          <>
-            <h1>
-              Откройте
-              <br />
-              прогнозы
-            </h1>
-            <div className="pdf-chips plan-toggle">
-              <button
-                aria-pressed={tier === "outcome"}
-                onClick={() => {
-                  T("outcome");
-                  S(0);
-                }}
-              >
-                Только исход матча
-              </button>
-              <button
-                aria-pressed={tier === "full"}
-                onClick={() => {
-                  T("full");
-                  S(0);
-                }}
-              >
-                Полная аналитика
-              </button>
-            </div>
-            {(tier === "outcome"
-              ? packages
-              : [
-                  { count: 1, price: 199 },
-                  { count: 3, price: 549 },
-                  { count: 5, price: 899 },
-                ]
-            ).map((p, i) => (
-              <button
-                key={p.count}
-                className={"package-card " + (i === selected ? "selected" : "")}
-                onClick={() => S(i)}
-              >
-                <h2>
-                  {p.count}{" "}
-                  {p.count === 1 ? "матч" : p.count < 5 ? "матча" : "матчей"}
-                </h2>
-                <p>
-                  {tier === "outcome"
-                    ? "Вероятность победы\nРасстановка сил"
-                    : "Вероятности и факторы\nРазвёрнутый анализ команд\nЧат по событию"}
-                </p>
-                <strong>
-                  {app.packageQuote(p).price}
-                  <small>₽</small>
-                </strong>
-              </button>
-            ))}
-            <button
-              className="m-button"
-              onClick={() =>
-                app.open({
-                  type: "order",
-                  package: {
-                    ...(tier === "outcome"
-                      ? packages
-                      : [
-                          { count: 1, price: 199 },
-                          { count: 3, price: 549 },
-                          { count: 5, price: 899 },
-                        ])[selected],
-                    tier,
-                  },
-                })
-              }
-            >
-              Купить
-            </button>
-            <button
-              className="text-button"
-              onClick={() => {
-                close();
-                app.go("/subscription");
-              }}
-            >
-              Все события · 1 000 ₽ / месяц
-            </button>
-            <small></small>
-          </>
+          <PlansContent app={app}/>
         ) : type === "order" ? (
           <>
             <h1>
@@ -1065,7 +995,7 @@ export function ExtraModal({ modal, app, close }) {
                     ? "Прогноз победы команды"
                     : "Полная аналитика"}
                 </h2>
-                <span>{modal.package.count} шт.</span>
+                <span>{modal.package.count} {modal.package.count === 1 ? "матч" : modal.package.count < 5 ? "матча" : "матчей"}</span>
               </div>
               <span>{app.packageQuote(modal.package).price} ₽</span>
             </div>
@@ -1085,7 +1015,7 @@ export function ExtraModal({ modal, app, close }) {
                 if(app.buyPackage(modal.package,useFunds,app.packageQuote(modal.package,checkoutNow).price)) close();
               }}
             >
-              Оплатить
+              Оплатить {app.paymentQuote(app.packageQuote(modal.package,checkoutNow).price,useFunds).due} ₽
             </button>
           </>
         ) : type === "topup" ? (
@@ -1228,7 +1158,7 @@ export function ExtraModal({ modal, app, close }) {
             <div className="profile-row">
               <Bell />
               <span>
-                Добро пожаловать в Diverge
+                Добро пожаловать в Rakurs
                 <small>Здесь будут новости о ваших матчах.</small>
               </span>
             </div>
@@ -1337,7 +1267,7 @@ export function ExtraModal({ modal, app, close }) {
               ],
               [
                 "Сколько стоит анализ?",
-                "Полный анализ одного матча — 199 ₽. Подписка на все события — 1 000 ₽ в месяц. ",
+                "Полный анализ одного матча — 199 ₽. Пакеты исходов — от 29 ₽ за 3 матча. ",
               ],
               [
                 "Что в пакете исходов?",
@@ -1387,7 +1317,7 @@ export function EventOrder({ event: e, app, close, confirm }) {
         {currency==="rub" && app.balance>0 && <label className="use-balance"><input type="checkbox" checked={useFunds} onChange={(e)=>setUseFunds(e.target.checked)}/><span>Использовать баланс<strong>{app.paymentQuote(199,true).used} ₽</strong></span></label>}
         <div className="order-total"><span>К оплате</span><strong>{currency === "package" ? "0" : payment.due} рублей</strong></div>
         <button className="m-button confirm-purchase" onClick={() => confirm(currency,useFunds)}>{currency === "package" ? "Использовать анализ" : `Оплатить ${payment.due} ₽`}</button>
-        <button className="text-button" onClick={() => { close(); app.go("/subscription"); }}>Все события за 1 000 ₽ / месяц</button>
+        <button className="text-button" onClick={() => { close(); app.go("/subscription"); }}>Выбрать пакет прогнозов</button>
       </div>
     </Modal>
   );
